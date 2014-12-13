@@ -1,0 +1,4 @@
+debian/tmp/usr/share/elementary/config
+debian/tmp/usr/share/elementary/edje_externals
+debian/tmp/usr/share/elementary/objects/font_preview.edj
+debian/tmp/usr/share/elementary/themes

@@ -1,0 +1,110 @@
+elementary (1.8.5-2) unstable; urgency=medium
+
+  * Upload elementary 1.8 to unstable
+
+ -- Albin Tonnerre <lutin@debian.org>  Sat, 10 May 2014 14:41:24 +0200
+
+elementary (1.8.5-1) experimental; urgency=medium
+
+  * New upstream version
+  * debian/copyright: clarify that license is LGPL-2.1, not LGPL-2.1+
+  * debian/copyright: update to follow the machine-readable DEP5 format
+
+ -- Albin Tonnerre <lutin@debian.org>  Sat, 22 Mar 2014 17:13:05 +0100
+
+elementary (1.8.4-1) experimental; urgency=low
+
+  * New upstream release
+  * debian/watch: update to point to the new releases directory
+  * debian/control: update Standards-Version to 3.9.5, no change required
+  * debian/control: update EFL dependencies to use EFL >= 1.8.0
+  * debian/control: refactor dependencies on -dev packages to be easier to read
+  * debian/control: move doxygen to build-depends-indep
+  * debian/rules: allow building in parallel
+  * debian: use dh-autoreconf to get recent autotools (Closes: #736767)
+  * debian: change SONAME and packages to libelementary2 following ABI changes.
+    The 1.8 series removed symbols that were as deprecated in previous
+    versions, but that change was made without changing the library SONAME.
+    Add a patch to do that and change the package names accordingly since we
+    don't want to break existing programs...
+  * debian: add new binaries and modules from 1.8 to the packages
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 02 Mar 2014 11:44:37 +0100
+
+elementary (1.7.7-3) unstable; urgency=medium
+
+  * debian/control: add B-D to build elm with support for Efreet, Edbus and EIO
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 05 Jan 2014 18:40:55 +0100
+
+elementary (1.7.7-2) unstable; urgency=low
+
+  * Add Multi-Arch support and switch from CDBS to dh
+
+ -- Albin Tonnerre <lutin@debian.org>  Thu, 14 Nov 2013 19:47:46 +0100
+
+elementary (1.7.7-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/control: update Build-Depends to use EFL 1.7.7
+  * debian/control: update URI in the VCS-* fields
+  * add font_preview.edj to libelementary-data, used in elementary_config
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 20 Oct 2013 15:57:35 +0200
+
+elementary (1.7.4-1) experimental; urgency=low
+
+  * New upstream release (Closes: #645928)
+  * debian/watch: watch releases instead of snapshots (Closes: #692850)
+  * Follow soname change: rename libelementary-svn-09 to libelementary1
+  * Update Build-Deps since configure.ac requires newer versions of EFL
+  * Add a symbols file for libelementary1
+  * patches/01_fix_linkage.diff: remove, applied upstream
+  * Add new program elementary_config and associated files
+  * Add missing modules from libelementary1
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 10 Mar 2013 14:21:54 +0100
+
+elementary (0.7.0.55225-1) unstable; urgency=low
+
+  * New upstream snapshot
+  * Drop the shlibs file and call dh_makeshlibs -V as we need the strictest deps
+  * Bump Standards-Version, no change required
+  * debian/control: slightly reword short description
+  * add patches/01_fix_linkage.diff: fix linkage issues in helper binaries
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 19 Jun 2011 19:23:49 +0200
+
+elementary (0.7.0.52995-1) experimental; urgency=low
+
+  * New upstream snapshot
+  * Bump Standards-Version, no change required
+  * 01_fix_edje_externals_install_path.diff: remove, applied upstream
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 10 Oct 2010 12:32:25 +0200
+
+elementary (0.7.0.49898-1) unstable; urgency=low
+
+  * New upstream snapshot
+  * Bump Standards-Version, no change required
+  * Add new build-dep on libeet-bin
+  * Switch to '3.0 (quilt)' source format
+  * Tighten libeet1 build-dep to >= 1.2.3
+  * Add patches/01_fix_edje_external_soname.diff:
+    - Install edje_external modules in a versionned path
+
+ -- Albin Tonnerre <lutin@debian.org>  Sat, 24 Jul 2010 09:20:29 +0200
+
+elementary (0.6.0.063-1) unstable; urgency=low
+
+  * New upstream snapshot
+  * debian/copyright: update, as the license changed from LGPL2 to LGPL2.1
+  * debian/control: update my email address
+
+ -- Albin Tonnerre <lutin@debian.org>  Sat, 05 Dec 2009 17:22:48 +0100
+
+elementary (0.5.1.0-1) unstable; urgency=low
+
+  * Initial upload (Closes: #539884)
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Sat, 05 Sep 2009 18:20:17 +0200

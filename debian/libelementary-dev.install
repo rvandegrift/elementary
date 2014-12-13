@@ -1,0 +1,4 @@
+debian/tmp/usr/include/elementary-1
+debian/tmp/usr/lib/*/libelementary.a
+debian/tmp/usr/lib/*/libelementary.so
+debian/tmp/usr/lib/*/pkgconfig/elementary.pc
