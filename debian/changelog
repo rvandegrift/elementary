@@ -8,6 +8,7 @@ elementary (1.12.2-0.1) UNRELEASED; urgency=medium
     + Add b-d on libeolian-dev.
     + Configure with --disable-silent-rules --enable-static.
     + Refresh 01_soname.diff.
+    + Update libelementary2.symbols.
 
  -- Andreas Metzler <ametzler@debian.org>  Sat, 13 Dec 2014 16:22:30 +0100
 
