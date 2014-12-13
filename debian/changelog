@@ -1,8 +1,10 @@
-elementary (1.8.5-2.1) UNRELEASED; urgency=medium
+elementary (1.12.2-0.1) UNRELEASED; urgency=medium
 
   * Non-maintainer upload.
   * Point watch file to .xz instead of .gz, use uversionmangle to handle beta
     versions.
+  * New upstream version.
+    + Bump (build-)depends version to 1.12.2.
 
  -- Andreas Metzler <ametzler@debian.org>  Sat, 13 Dec 2014 16:22:30 +0100
 
