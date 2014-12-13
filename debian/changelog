@@ -5,6 +5,7 @@ elementary (1.12.2-0.1) UNRELEASED; urgency=medium
     versions.
   * New upstream version.
     + Bump (build-)depends version to 1.12.2.
+    + Add b-d on libeolian-dev.
 
  -- Andreas Metzler <ametzler@debian.org>  Sat, 13 Dec 2014 16:22:30 +0100
 
