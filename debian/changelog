@@ -13,6 +13,7 @@ elementary (1.12.2-0.1) UNRELEASED; urgency=medium
       linkage against eina.
   * Invoke dh_install with "--list-missing" option.
   * Install gettext translations.
+  * Ship .eo files in -dev package.
 
  -- Andreas Metzler <ametzler@debian.org>  Sat, 13 Dec 2014 16:22:30 +0100
 
