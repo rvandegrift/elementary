@@ -9,6 +9,8 @@ elementary (1.12.2-0.1) UNRELEASED; urgency=medium
     + Configure with --disable-silent-rules --enable-static.
     + Refresh 01_soname.diff.
     + Update libelementary2.symbols.
+    + 15_fixlinkage-error.diff: Fix build error due to missing (direct)
+      linkage against eina.
 
  -- Andreas Metzler <ametzler@debian.org>  Sat, 13 Dec 2014 16:22:30 +0100
 
