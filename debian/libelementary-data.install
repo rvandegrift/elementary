@@ -1,5 +1,11 @@
 debian/tmp/usr/share/elementary/config
 debian/tmp/usr/share/elementary/edje_externals
 debian/tmp/usr/share/elementary/objects/font_preview.edj
+debian/tmp/usr/share/elementary/objects/cursors.edj
+debian/tmp/usr/share/elementary/objects/multibuttonentry.edj
+debian/tmp/usr/share/elementary/objects/multip.edj
+debian/tmp/usr/share/elementary/objects/postit_ent.edj
 debian/tmp/usr/share/elementary/themes
+debian/tmp/usr/share/elementary/images
+debian/tmp/usr/share/icons/elementary.png
 usr/share/locale/*/LC_MESSAGES/elementary.mo
