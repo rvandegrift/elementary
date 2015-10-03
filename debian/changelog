@@ -1,5 +1,6 @@
-elementary (1.12.2-0.1) UNRELEASED; urgency=medium
+elementary (1.15.1-0.1) UNRELEASED; urgency=medium
 
+  [ Andreas Metzler ]
   * Non-maintainer upload.
   * Point watch file to .xz instead of .gz, use uversionmangle to handle beta
     versions.
@@ -17,7 +18,17 @@ elementary (1.12.2-0.1) UNRELEASED; urgency=medium
   * Include -cxx support files.
   * Ship elementary_codegen.
 
- -- Andreas Metzler <ametzler@debian.org>  Sat, 13 Dec 2014 16:22:30 +0100
+  [ Ross Vandegrift ]
+  * Bump standards version to 3.9.6
+  * Update build-deps to libefl-core-dev 1.15.1
+  * patches/15_all_linker_flags_for_modules.diff: drop, integrated upstream
+  * Update symbols with new abi
+  * Update installed files
+  * libefl-all-dev: metapackage for all EFL dev packages
+  * Rename packages (libe.*)2 -> \1.15 for abi break
+  * Drop Debian-local soname modification
+
+ -- Ross Vandegrift <ross@kallisti.us>  Sat, 03 Oct 2015 16:11:59 -0400
 
 elementary (1.8.5-2) unstable; urgency=medium
 
