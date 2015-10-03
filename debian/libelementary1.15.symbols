@@ -1,4 +1,4 @@
-libelementary.so.2 libelementary2 #MINVER#
+libelementary.so.2 libelementary1.15 #MINVER#
  ELM_CTXPOPUP_SMART_NAME@Base 1.8.4
  ELM_ECORE_EVENT_ETHUMB_CONNECT@Base 1.7.4
  ELM_EVENT_CONFIG_ALL_CHANGED@Base 1.7.4
