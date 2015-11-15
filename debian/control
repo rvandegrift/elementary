@@ -13,7 +13,7 @@ Vcs-Git: git://anonscm.debian.org/pkg-e/libs/elementary.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-e/libs/elementary.git
 Homepage: http://www.enlightenment.org
 
-Package: libelementary1.15
+Package: libelementary1
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Breaks: libelementary2
@@ -48,7 +48,7 @@ Description: runtime data-files for libelementary
 Package: libelementary-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libelementary1.15 (= ${binary:Version}), pkg-config,
+Depends: ${misc:Depends}, libelementary1 (= ${binary:Version}), pkg-config,
  libefl-core-dev (>= 1.15.1)
 Description: Development files for libelementary
  Elementary is a widget set based on the Enlightenment Foundation Libraries,
@@ -61,7 +61,7 @@ Description: Development files for libelementary
 Package: libelementary-dbg
 Architecture: any
 Section: debug
-Depends: ${misc:Depends}, libelementary1.15 (= ${binary:Version})
+Depends: ${misc:Depends}, libelementary1 (= ${binary:Version})
 Priority: extra
 Description: debugging symbols for use with libelementary
  Elementary is a widget set based on the Enlightenment Foundation Libraries,
