@@ -70,18 +70,3 @@ Description: debugging symbols for use with libelementary
  to provide a backtrace with names in a debugger, this makes it somewhat easier
  to interpret core dumps. The libraries are installed in /usr/lib/debug and
  are automatically used by gdb.
-
-Package: libefl-all-dev
-Section: libdevel
-Architecture: any
-Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends},
- libelementary-dev (>= ${source:Upstream-Version}),
- libefl-core-dev (>= 1.15.1)
-Description: Enlightenment Foundation Libraries all development files
- The Enlightenment Foundation Libraries (EFL) is a stack of libraries
- providing a wide degree of functionality.  Originally written to
- support development of the Enlightenment window manager, the
- libraries have increasingly been used in embedded systems.
- .
- This metapackage provides the development files for all EFL libraries.
