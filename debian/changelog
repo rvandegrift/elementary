@@ -24,9 +24,13 @@ elementary (1.15.1-1) UNRELEASED; urgency=medium
   * patches/15_all_linker_flags_for_modules.diff: drop, integrated upstream
   * Update symbols with new abi
   * Update installed files
-  * libefl-all-dev: metapackage for all EFL dev packages
   * Rename packages (libe.*)2 -> \1.15 for abi break
   * Drop Debian-local soname modification
+  * Undo rename from feb4071b
+  * Adjust dependencies to help ensure strict version sync with EFL
+  * Update version number
+  * Relax unnecessary tight Build-Depends
+  * Update Build-Depends for EFL metapackage rename
 
  -- Ross Vandegrift <ross@kallisti.us>  Sat, 03 Oct 2015 16:11:59 -0400
 
