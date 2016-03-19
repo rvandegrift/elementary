@@ -139,6 +139,7 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_GENLIST_EVENT_EDGE_TOP@Base 1.15.3+eo+1
  _ELM_GENLIST_EVENT_EXPANDED@Base 1.15.3+eo+1
  _ELM_GENLIST_EVENT_EXPAND_REQUEST@Base 1.15.3+eo+1
+ _ELM_GENLIST_EVENT_FILTER_DONE@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_HBAR_DRAG@Base 1.15.3+eo+1
  _ELM_GENLIST_EVENT_HBAR_PRESS@Base 1.15.3+eo+1
  _ELM_GENLIST_EVENT_HBAR_UNPRESS@Base 1.15.3+eo+1
@@ -193,8 +194,11 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_INDEX_EVENT_LEVEL_DOWN@Base 1.15.3+eo+1
  _ELM_INDEX_EVENT_LEVEL_UP@Base 1.15.3+eo+1
  _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_ACTIVE_DESCENDANTS_CHANGED@Base 1.15.3+eo+1
+ _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_ACTIVE_DESCENDANT_CHANGED@Base 1.16.1+eo+1
+ _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_ADDED@Base 1.16.1+eo+1
  _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_CHILDREN_CHANGED@Base 1.15.3+eo+1
  _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_PROPERTY_CHANGED@Base 1.15.3+eo+1
+ _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_REMOVED@Base 1.16.1+eo+1
  _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_STATE_CHANGED@Base 1.15.3+eo+1
  _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_VISIBLE_DATA_CHANGED@Base 1.15.3+eo+1
  _ELM_INTERFACE_ATSPI_SELECTION_EVENT_SELECTION_CHANGED@Base 1.15.3+eo+1
@@ -537,6 +541,13 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_atspi_bridge_class_get@Base 1.15.3+eo+1
  elm_atspi_bridge_connected_get@Base 1.15.3+eo+1
  elm_atspi_bridge_root_get@Base 1.15.3+eo+1
+ elm_atspi_relation_clone@Base 1.16.1+eo+1
+ elm_atspi_relation_free@Base 1.16.1+eo+1
+ elm_atspi_relation_set_clone@Base 1.16.1+eo+1
+ elm_atspi_relation_set_free@Base 1.16.1+eo+1
+ elm_atspi_relation_set_relation_append@Base 1.16.1+eo+1
+ elm_atspi_relation_set_relation_remove@Base 1.16.1+eo+1
+ elm_atspi_relation_set_relation_type_remove@Base 1.16.1+eo+1
  elm_atspi_text_text_attribute_free@Base 1.15.3+eo+1
  elm_bg_add@Base 1.15.3+eo+1
  elm_bg_class_get@Base 1.15.3+eo+1
@@ -776,6 +787,12 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_config_scroll_thumbscroll_momentum_threshold_set@Base 1.15.3+eo+1
  elm_config_scroll_thumbscroll_sensitivity_friction_get@Base 1.15.3+eo+1
  elm_config_scroll_thumbscroll_sensitivity_friction_set@Base 1.15.3+eo+1
+ elm_config_scroll_thumbscroll_smooth_amount_get@Base 1.16.1+eo+1
+ elm_config_scroll_thumbscroll_smooth_amount_set@Base 1.16.1+eo+1
+ elm_config_scroll_thumbscroll_smooth_start_get@Base 1.16.1+eo+1
+ elm_config_scroll_thumbscroll_smooth_start_set@Base 1.16.1+eo+1
+ elm_config_scroll_thumbscroll_smooth_time_window_get@Base 1.16.1+eo+1
+ elm_config_scroll_thumbscroll_smooth_time_window_set@Base 1.16.1+eo+1
  elm_config_scroll_thumbscroll_threshold_get@Base 1.15.3+eo+1
  elm_config_scroll_thumbscroll_threshold_set@Base 1.15.3+eo+1
  elm_config_scroll_zoom_friction_get@Base 1.15.3+eo+1
@@ -1199,6 +1216,8 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_genlist_decorate_mode_get@Base 1.15.3+eo+1
  elm_genlist_decorate_mode_set@Base 1.15.3+eo+1
  elm_genlist_decorated_item_get@Base 1.15.3+eo+1
+ elm_genlist_filter_iterator_new@Base 1.16.1+eo+1
+ elm_genlist_filter_set@Base 1.16.1+eo+1
  elm_genlist_first_item_get@Base 1.15.3+eo+1
  elm_genlist_focus_on_selection_get@Base 1.15.3+eo+1
  elm_genlist_focus_on_selection_set@Base 1.15.3+eo+1
@@ -1356,6 +1375,8 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_hover_target_get@Base 1.15.3+eo+1
  elm_hover_target_set@Base 1.15.3+eo+1
  elm_hoversel_add@Base 1.15.3+eo+1
+ elm_hoversel_auto_update_get@Base 1.16.1+eo+1
+ elm_hoversel_auto_update_set@Base 1.16.1+eo+1
  elm_hoversel_class_get@Base 1.15.3+eo+1
  elm_hoversel_clear@Base 1.15.3+eo+1
  elm_hoversel_expanded_get@Base 1.15.3+eo+1
@@ -1451,17 +1472,23 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_index_item_level_set@Base 1.15.3+eo+1
  elm_index_item_prepend@Base 1.15.3+eo+1
  elm_index_item_prepend_relative@Base 1.15.3+eo+1
+ elm_index_item_priority_set@Base 1.16.1+eo+1
  elm_index_item_selected_set@Base 1.15.3+eo+1
  elm_index_item_sorted_insert@Base 1.15.3+eo+1
  elm_index_level_go@Base 1.15.3+eo+1
  elm_index_omit_enabled_get@Base 1.15.3+eo+1
  elm_index_omit_enabled_set@Base 1.15.3+eo+1
  elm_index_selected_item_get@Base 1.15.3+eo+1
+ elm_index_standard_priority_get@Base 1.16.1+eo+1
+ elm_index_standard_priority_set@Base 1.16.1+eo+1
  elm_init@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_attributes_get@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_children_get@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_description_get@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_description_set@Base 1.15.3+eo+1
+ elm_interface_atspi_accessible_event_emit@Base 1.16.1+eo+1
+ elm_interface_atspi_accessible_event_handler_add@Base 1.16.1+eo+1
+ elm_interface_atspi_accessible_event_handler_del@Base 1.16.1+eo+1
  elm_interface_atspi_accessible_index_in_parent_get@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_localized_role_name_get@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_mixin_get@Base 1.15.3+eo+1
@@ -1470,10 +1497,15 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_interface_atspi_accessible_parent_get@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_parent_set@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_relation_set_get@Base 1.15.3+eo+1
+ elm_interface_atspi_accessible_relationship_append@Base 1.16.1+eo+1
+ elm_interface_atspi_accessible_relationship_remove@Base 1.16.1+eo+1
+ elm_interface_atspi_accessible_relationships_clear@Base 1.16.1+eo+1
  elm_interface_atspi_accessible_role_get@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_role_name_get@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_role_set@Base 1.15.3+eo+1
  elm_interface_atspi_accessible_state_set_get@Base 1.15.3+eo+1
+ elm_interface_atspi_accessible_translation_domain_get@Base 1.16.1+eo+1
+ elm_interface_atspi_accessible_translation_domain_set@Base 1.16.1+eo+1
  elm_interface_atspi_action_actions_get@Base 1.15.3+eo+1
  elm_interface_atspi_action_description_get@Base 1.15.3+eo+1
  elm_interface_atspi_action_description_set@Base 1.15.3+eo+1
@@ -2268,6 +2300,9 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_gengrid_realized_items_update@Base 1.15.3+eo+1
  elm_obj_gengrid_reorder_mode_get@Base 1.15.3+eo+1
  elm_obj_gengrid_reorder_mode_set@Base 1.15.3+eo+1
+ elm_obj_gengrid_reorder_mode_start@Base 1.16.1+eo+1
+ elm_obj_gengrid_reorder_mode_stop@Base 1.16.1+eo+1
+ elm_obj_gengrid_reorder_type_set@Base 1.16.1+eo+1
  elm_obj_gengrid_search_by_text_item_get@Base 1.15.3+eo+1
  elm_obj_gengrid_select_mode_get@Base 1.15.3+eo+1
  elm_obj_gengrid_select_mode_set@Base 1.15.3+eo+1
@@ -2282,6 +2317,8 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_genlist_decorate_mode_get@Base 1.15.3+eo+1
  elm_obj_genlist_decorate_mode_set@Base 1.15.3+eo+1
  elm_obj_genlist_decorated_item_get@Base 1.15.3+eo+1
+ elm_obj_genlist_filter_iterator_new@Base 1.16.1+eo+1
+ elm_obj_genlist_filter_set@Base 1.16.1+eo+1
  elm_obj_genlist_first_item_get@Base 1.15.3+eo+1
  elm_obj_genlist_focus_on_selection_get@Base 1.15.3+eo+1
  elm_obj_genlist_focus_on_selection_set@Base 1.15.3+eo+1
@@ -2379,6 +2416,8 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_hover_dismiss@Base 1.15.3+eo+1
  elm_obj_hover_target_get@Base 1.15.3+eo+1
  elm_obj_hover_target_set@Base 1.15.3+eo+1
+ elm_obj_hoversel_auto_update_get@Base 1.16.1+eo+1
+ elm_obj_hoversel_auto_update_set@Base 1.16.1+eo+1
  elm_obj_hoversel_clear@Base 1.15.3+eo+1
  elm_obj_hoversel_expanded_get@Base 1.15.3+eo+1
  elm_obj_hoversel_horizontal_get@Base 1.15.3+eo+1
@@ -2441,12 +2480,15 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_index_item_level_get@Base 1.15.3+eo+1
  elm_obj_index_item_level_set@Base 1.15.3+eo+1
  elm_obj_index_item_prepend@Base 1.15.3+eo+1
+ elm_obj_index_item_priority_set@Base 1.16.1+eo+1
  elm_obj_index_item_selected_set@Base 1.15.3+eo+1
  elm_obj_index_item_sorted_insert@Base 1.15.3+eo+1
  elm_obj_index_level_go@Base 1.15.3+eo+1
  elm_obj_index_omit_enabled_get@Base 1.15.3+eo+1
  elm_obj_index_omit_enabled_set@Base 1.15.3+eo+1
  elm_obj_index_selected_item_get@Base 1.15.3+eo+1
+ elm_obj_index_standard_priority_get@Base 1.16.1+eo+1
+ elm_obj_index_standard_priority_set@Base 1.16.1+eo+1
  elm_obj_label_ellipsis_get@Base 1.15.3+eo+1
  elm_obj_label_ellipsis_set@Base 1.15.3+eo+1
  elm_obj_label_line_wrap_get@Base 1.15.3+eo+1
@@ -3058,12 +3100,16 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_widget_focus_move_policy_set@Base 1.15.3+eo+1
  elm_obj_widget_focus_next@Base 1.15.3+eo+1
  elm_obj_widget_focus_next_get@Base 1.15.3+eo+1
+ elm_obj_widget_focus_next_item_get@Base 1.16.1+eo+1
+ elm_obj_widget_focus_next_item_set@Base 1.16.1+eo+1
  elm_obj_widget_focus_next_manager_is@Base 1.15.3+eo+1
  elm_obj_widget_focus_next_object_get@Base 1.15.3+eo+1
  elm_obj_widget_focus_next_object_set@Base 1.15.3+eo+1
  elm_obj_widget_focus_order_get@Base 1.15.3+eo+1
  elm_obj_widget_focus_region_get@Base 1.15.3+eo+1
  elm_obj_widget_focus_region_show@Base 1.15.3+eo+1
+ elm_obj_widget_focus_region_show_mode_get@Base 1.16.1+eo+1
+ elm_obj_widget_focus_region_show_mode_set@Base 1.16.1+eo+1
  elm_obj_widget_focus_restore@Base 1.15.3+eo+1
  elm_obj_widget_focus_set@Base 1.15.3+eo+1
  elm_obj_widget_focus_steal@Base 1.15.3+eo+1
@@ -3275,8 +3321,12 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_object_focus_move_policy_get@Base 1.15.3+eo+1
  elm_object_focus_move_policy_set@Base 1.15.3+eo+1
  elm_object_focus_next@Base 1.15.3+eo+1
+ elm_object_focus_next_item_get@Base 1.16.1+eo+1
+ elm_object_focus_next_item_set@Base 1.16.1+eo+1
  elm_object_focus_next_object_get@Base 1.15.3+eo+1
  elm_object_focus_next_object_set@Base 1.15.3+eo+1
+ elm_object_focus_region_show_mode_get@Base 1.16.1+eo+1
+ elm_object_focus_region_show_mode_set@Base 1.16.1+eo+1
  elm_object_focus_set@Base 1.15.3+eo+1
  elm_object_focused_item_get@Base 1.15.3+eo+1
  elm_object_focused_object_get@Base 1.15.3+eo+1
@@ -3303,6 +3353,10 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_object_item_domain_part_text_translatable_set@Base 1.15.3+eo+1
  elm_object_item_domain_translatable_part_text_set@Base 1.15.3+eo+1
  elm_object_item_focus_get@Base 1.15.3+eo+1
+ elm_object_item_focus_next_item_get@Base 1.16.1+eo+1
+ elm_object_item_focus_next_item_set@Base 1.16.1+eo+1
+ elm_object_item_focus_next_object_get@Base 1.16.1+eo+1
+ elm_object_item_focus_next_object_set@Base 1.16.1+eo+1
  elm_object_item_focus_set@Base 1.15.3+eo+1
  elm_object_item_part_content_get@Base 1.15.3+eo+1
  elm_object_item_part_content_set@Base 1.15.3+eo+1
@@ -4037,6 +4091,10 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_wdg_item_domain_part_text_translatable_set@Base 1.15.3+eo+1
  elm_wdg_item_domain_translatable_part_text_set@Base 1.15.3+eo+1
  elm_wdg_item_focus_get@Base 1.15.3+eo+1
+ elm_wdg_item_focus_next_item_get@Base 1.16.1+eo+1
+ elm_wdg_item_focus_next_item_set@Base 1.16.1+eo+1
+ elm_wdg_item_focus_next_object_get@Base 1.16.1+eo+1
+ elm_wdg_item_focus_next_object_set@Base 1.16.1+eo+1
  elm_wdg_item_focus_set@Base 1.15.3+eo+1
  elm_wdg_item_part_content_get@Base 1.15.3+eo+1
  elm_wdg_item_part_content_set@Base 1.15.3+eo+1
@@ -4177,12 +4235,16 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_widget_focus_move_policy_set@Base 1.15.3+eo+1
  elm_widget_focus_next@Base 1.15.3+eo+1
  elm_widget_focus_next_get@Base 1.15.3+eo+1
+ elm_widget_focus_next_item_get@Base 1.16.1+eo+1
+ elm_widget_focus_next_item_set@Base 1.16.1+eo+1
  elm_widget_focus_next_manager_is@Base 1.15.3+eo+1
  elm_widget_focus_next_object_get@Base 1.15.3+eo+1
  elm_widget_focus_next_object_set@Base 1.15.3+eo+1
  elm_widget_focus_order_get@Base 1.15.3+eo+1
  elm_widget_focus_region_get@Base 1.15.3+eo+1
  elm_widget_focus_region_show@Base 1.15.3+eo+1
+ elm_widget_focus_region_show_mode_get@Base 1.16.1+eo+1
+ elm_widget_focus_region_show_mode_set@Base 1.16.1+eo+1
  elm_widget_focus_restore@Base 1.15.3+eo+1
  elm_widget_focus_set@Base 1.15.3+eo+1
  elm_widget_focus_steal@Base 1.15.3+eo+1
