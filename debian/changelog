@@ -1,3 +1,13 @@
+elementary (1.16.1-1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream version.
+  * Add new 1.16 symbols
+  * Remove eo/eolian symbols dropped in 1.16
+  * Bump symbol versions for new release of eolian generator
+
+ -- Ross Vandegrift <ross@kallisti.us>  Sun, 27 Mar 2016 11:33:38 -0400
+
 elementary (1.15.3-1) unstable; urgency=medium
 
   * Non-maintainer upload.
