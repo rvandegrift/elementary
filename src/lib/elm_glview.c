@@ -16,7 +16,6 @@
 
 static const char SIG_FOCUSED[] = "focused";
 static const char SIG_UNFOCUSED[] = "unfocused";
-static const char SIG_LANG_CHANGED[] = "language,changed";
 
 /* smart callbacks coming from elm glview objects: */
 static const Evas_Smart_Cb_Description _smart_callbacks[] = {
@@ -28,12 +27,12 @@ static const Evas_Smart_Cb_Description _smart_callbacks[] = {
 };
 
 EOLIAN static Eina_Bool
-_elm_glview_elm_widget_on_focus(Eo *obj, Elm_Glview_Data *_pd EINA_UNUSED)
+_elm_glview_elm_widget_on_focus(Eo *obj, Elm_Glview_Data *_pd EINA_UNUSED, Elm_Object_Item *item EINA_UNUSED)
 {
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd, EINA_FALSE);
    Eina_Bool int_ret = EINA_FALSE;
 
-   eo_do_super(obj, MY_CLASS, int_ret = elm_obj_widget_on_focus());
+   eo_do_super(obj, MY_CLASS, int_ret = elm_obj_widget_on_focus(NULL));
    if (!int_ret) return EINA_FALSE;
 
    if (elm_widget_focus_get(obj))

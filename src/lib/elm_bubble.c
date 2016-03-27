@@ -76,7 +76,7 @@ _on_mouse_up(void *data,
 /* overriding layout's focus_next() in order to just cycle through the
  * content's tree */
 EOLIAN static Eina_Bool
-_elm_bubble_elm_widget_focus_next(Eo *obj, Elm_Bubble_Data *_pd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_bubble_elm_widget_focus_next(Eo *obj, Elm_Bubble_Data *_pd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Evas_Object *content;
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd, EINA_FALSE);
@@ -93,12 +93,12 @@ _elm_bubble_elm_widget_focus_next(Eo *obj, Elm_Bubble_Data *_pd EINA_UNUSED, Elm
         if (!content) return EINA_FALSE;
 
         /* attempt to follow focus cycle into sub-object */
-        return elm_widget_focus_next_get(content, dir, next);
+        return elm_widget_focus_next_get(content, dir, next, next_item);
      }
 }
 
 EOLIAN static Eina_Bool
-_elm_bubble_elm_widget_focus_direction(Eo *obj, Elm_Bubble_Data *_pd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_bubble_elm_widget_focus_direction(Eo *obj, Elm_Bubble_Data *_pd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Evas_Object *content;
 
@@ -108,7 +108,7 @@ _elm_bubble_elm_widget_focus_direction(Eo *obj, Elm_Bubble_Data *_pd EINA_UNUSED
 
    /* Try Focus cycle in subitem */
    return elm_widget_focus_direction_get
-            (content, base, degree, direction, weight);
+            (content, base, degree, direction, direction_item, weight);
 }
 
 EOLIAN static Eina_Bool

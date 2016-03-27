@@ -179,25 +179,6 @@ static const unsigned short cube_indices[] =
    20, 21, 22, 22, 21, 23
 };
 
-static inline vec3
-_normalize(const vec3 *v)
-{
-
-   double l;
-   vec3 vec;
-
-   l = sqrt((v->x * v->x) + (v->y * v->y) + (v->z * v->z));
-
-   if (l != 0)
-     {
-        vec.x = v->x / l;
-        vec.y = v->y / l;
-        vec.z = v->z / l;
-     }
-
-   return vec;
-}
-
 static void
 _sphere_fini()
 {
@@ -423,7 +404,7 @@ _key_down(void *data,
              if (camera_y > 26.5)
                {
                   camera_y -= 0.5;
-                  camera_z -= 0.5 * (7 / 4);
+                  camera_z -= 0.5 * (7.0 / 4.0);
                }
           }
         if (!strcmp(ev->key, "Down"))
@@ -431,7 +412,7 @@ _key_down(void *data,
              if (camera_y < 100.0)
                {
                   camera_y += 0.5;
-                  camera_z += 0.5 * (7 / 4);
+                  camera_z += 0.5 * (7.0 / 4.0);
                }
           }
         if (!strcmp(ev->key, "n"))
@@ -598,7 +579,7 @@ _create_cubes(Scene_Data *data, Evas_Real r, int count)
    Evas_Real d_alpha;
 
    data->items = NULL;
-   d_alpha = 360 / count;
+   d_alpha = 360 / (double)count;
 
    for (i = 0; i < count; i++)
      {
@@ -707,7 +688,7 @@ char score_buffer[32];
 static char *
 _score_get(int sc)
 {
-   if (sc >= 0 || sc <= 10)
+   if (sc >= 0 && sc <= 10)
      {
         eina_convert_itoa(sc, score_buffer);
         return score_buffer;

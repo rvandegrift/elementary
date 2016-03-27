@@ -34,19 +34,15 @@
  */
 
 /**
- * Focus directions.
+ * Focus region show mode.
  *
  * @ingroup Focus
  */
 typedef enum
 {
-   ELM_FOCUS_PREVIOUS, /**< previous direction */
-   ELM_FOCUS_NEXT,     /**< next direction */
-   ELM_FOCUS_UP,       /**< up direction */
-   ELM_FOCUS_DOWN,     /**< down direction */
-   ELM_FOCUS_RIGHT,    /**< right direction */
-   ELM_FOCUS_LEFT      /**< left direction */
-} Elm_Focus_Direction;
+   ELM_FOCUS_REGION_SHOW_WIDGET, /**< as a widget */
+   ELM_FOCUS_REGION_SHOW_ITEM, /**< as an item */
+} Elm_Focus_Region_Show_Mode;
 
 /**
  * Get the whether an Elementary object has the focus or not.
@@ -318,25 +314,6 @@ EAPI Eina_Bool    elm_object_focus_highlight_style_set(Evas_Object *obj, const c
 EAPI const char  *elm_object_focus_highlight_style_get(const Evas_Object *obj);
 
 /**
- * Get the focused object item
- *
- * This returns the focused object item.
- *
- * @param obj The container object
- * @return The focused item, or @c NULL if none
- *
- * The focused item can be unfocused with function
- * elm_object_item_focus_set().
- *
- * see @elm_object_item_focus_set()
- * see @elm_object_item_focus_get()
- *
- * @ingroup Focus
- * @since 1.10
- */
-EAPI Elm_Object_Item             *elm_object_focused_item_get(const Evas_Object *obj);
-
-/**
  * Set the focus movement policy to a given Elementary object.
  *
  * @param obj The Elementary object to operate on
@@ -371,3 +348,36 @@ EAPI void                 elm_object_focus_move_policy_set(Evas_Object *obj, Elm
  * @ingroup Focus
  */
 EAPI Elm_Focus_Move_Policy  elm_object_focus_move_policy_get(const Evas_Object *obj);
+
+/**
+ * Set the focus region show mode to a given Elementary object.
+ *
+ * @param obj The Elementary object to operate on
+ * @param mode A mode to show the focus region
+ *
+ * @see elm_object_focus_region_show_mode_get
+ *
+ * When the focus is move to the object in scroller, it is scrolled
+ * to show the focus region as a widget. If the focus region want to be shown
+ * as an item, set the mode ELM_FOCUS_REGION_SHOW_ITEM.
+ * If then, it will be scrolled as an item.
+ *
+ * @since 1.16
+ *
+ * @ingroup Focus
+ */
+EAPI void                       elm_object_focus_region_show_mode_set(Evas_Object *obj, Elm_Focus_Region_Show_Mode mode);
+
+/**
+ * Get the focus region show mode to a given Elementary object.
+ *
+ * @param obj The Elementary object to get the information from
+ * @return The focus region shown mode
+ *
+ * @see elm_object_focus_region_show_mode_set
+ *
+ * @since 1.16
+ *
+ * @ingroup Focus
+ */
+EAPI Elm_Focus_Region_Show_Mode elm_object_focus_region_show_mode_get(const Evas_Object *obj);

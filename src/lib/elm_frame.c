@@ -58,7 +58,7 @@ _elm_frame_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_Frame_Data 
 }
 
 EOLIAN static Eina_Bool
-_elm_frame_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Frame_Data *_pd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_frame_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Frame_Data *_pd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Evas_Object *content;
 
@@ -69,7 +69,7 @@ _elm_frame_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Frame_Data *_pd EINA_U
    else
      {
         /* attempt to follow focus cycle into sub-object */
-        return elm_widget_focus_next_get(content, dir, next);
+        return elm_widget_focus_next_get(content, dir, next, next_item);
      }
 }
 
@@ -80,7 +80,7 @@ _elm_frame_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Frame_
 }
 
 EOLIAN static Eina_Bool
-_elm_frame_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Frame_Data *_pd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_frame_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Frame_Data *_pd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Evas_Object *content;
 
@@ -92,7 +92,7 @@ _elm_frame_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Frame_Data *_pd E
      {
         /* Try to cycle focus on content */
         return elm_widget_focus_direction_get
-           (content, base, degree, direction, weight);
+           (content, base, degree, direction, direction_item, weight);
      }
 }
 

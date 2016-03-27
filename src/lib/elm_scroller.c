@@ -100,6 +100,7 @@ _key_action_move(Evas_Object *obj, const char *params)
    Evas_Object *current_focus = NULL;
    Eina_List *can_focus_list = NULL;
    Evas_Object *new_focus = NULL;
+   Elm_Object_Item *new_focus_item = NULL;
    Evas_Coord f_x = 0;
    Evas_Coord f_y = 0;
    Evas_Coord f_w = 0;
@@ -112,6 +113,8 @@ _key_action_move(Evas_Object *obj, const char *params)
          elm_interface_scrollable_content_viewport_geometry_get
          (&v_x, &v_y, &v_w, &v_h));
    evas_object_geometry_get(sd->content, &c_x, &c_y, &max_x, &max_y);
+
+   _elm_widget_focus_auto_show(obj);
 
    current_focus = elm_widget_focused_object_get(obj);
    evas_object_geometry_get(current_focus, &f_x, &f_y, &f_w, &f_h);
@@ -143,7 +146,7 @@ _key_action_move(Evas_Object *obj, const char *params)
                     cur_weight += ((f_y - c_y) - y) * ((f_y - c_y) - y);
                   if (cur_weight == 0.0)
                     {
-                       elm_widget_focus_steal(cur);
+                       elm_widget_focus_steal(cur, NULL);
                        eina_list_free(can_focus_list);
                        return EINA_TRUE;
                     }
@@ -157,7 +160,7 @@ _key_action_move(Evas_Object *obj, const char *params)
           }
         if (new_focus)
           {
-             elm_widget_focus_steal(new_focus);
+             elm_widget_focus_steal(new_focus, NULL);
              eina_list_free(can_focus_list);
              return EINA_TRUE;
           }
@@ -167,33 +170,19 @@ _key_action_move(Evas_Object *obj, const char *params)
         Eina_Bool r = EINA_FALSE;
 
         if (!strcmp(dir, "left"))
-          r = elm_widget_focus_next_get(obj, ELM_FOCUS_LEFT, &new_focus);
+          r = elm_widget_focus_next_get(obj, ELM_FOCUS_LEFT, &new_focus, &new_focus_item);
         else if (!strcmp(dir, "right"))
-          r = elm_widget_focus_next_get(obj, ELM_FOCUS_RIGHT, &new_focus);
+          r = elm_widget_focus_next_get(obj, ELM_FOCUS_RIGHT, &new_focus, &new_focus_item);
         else if (!strcmp(dir, "up"))
-          r = elm_widget_focus_next_get(obj, ELM_FOCUS_UP, &new_focus);
+          r = elm_widget_focus_next_get(obj, ELM_FOCUS_UP, &new_focus, &new_focus_item);
         else if (!strcmp(dir, "down"))
-          r = elm_widget_focus_next_get(obj, ELM_FOCUS_DOWN, &new_focus);
+          r = elm_widget_focus_next_get(obj, ELM_FOCUS_DOWN, &new_focus, &new_focus_item);
 
         if (r && new_focus)
           {
-             Evas_Coord l_x = 0;
-             Evas_Coord l_y = 0;
-             Evas_Coord l_w = 0;
-             Evas_Coord l_h = 0;
-
-             evas_object_geometry_get(new_focus, &f_x, &f_y, &f_w, &f_h);
-             l_x = f_x - c_x - step_x;
-             l_y = f_y - c_y - step_y;
-             l_w = f_w + (step_x * 2);
-             l_h = f_h + (step_y * 2);
-
-             if (ELM_RECTS_INTERSECT(x, y, v_w, v_h, l_x, l_y, l_w, l_h))
-               {
-                  elm_widget_focus_steal(new_focus);
-                  eina_list_free(can_focus_list);
-                  return EINA_TRUE;
-               }
+             elm_widget_focus_steal(new_focus, new_focus_item);
+             eina_list_free(can_focus_list);
+             return EINA_TRUE;
           }
      }
 
@@ -411,7 +400,7 @@ _elm_scroller_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_Scroller
 }
 
 EOLIAN static Eina_Bool
-_elm_scroller_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Scroller_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_scroller_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Scroller_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Evas_Object *cur;
 
@@ -425,20 +414,40 @@ _elm_scroller_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Scroller_Data *sd, 
         if ((elm_widget_can_focus_get(cur)) ||
             (elm_widget_child_can_focus_get(cur)))
           {
-             return elm_widget_focus_next_get(cur, dir, next);
+             return elm_widget_focus_next_get(cur, dir, next, next_item);
           }
 
         return EINA_FALSE;
      }
 
    /* Try focus cycle in subitem */
-   if (elm_widget_focus_get(obj))
+   if ((elm_widget_can_focus_get(cur)) ||
+       (elm_widget_child_can_focus_get(cur)))
      {
-        if ((elm_widget_can_focus_get(cur)) ||
-            (elm_widget_child_can_focus_get(cur)))
-          {
-             return elm_widget_focus_next_get(cur, dir, next);
-          }
+        Eina_Bool ret = EINA_FALSE;
+        Evas_Coord x = 0, y = 0;
+        Evas_Coord v_w = 0, v_h = 0;
+        Evas_Coord c_x = 0, c_y = 0;
+        Evas_Coord f_x = 0, f_y = 0, f_w = 0, f_h = 0;
+        Evas_Coord l_x = 0, l_y = 0, l_w = 0, l_h = 0;
+        Evas_Coord step_x = 0, step_y = 0;
+
+        ret =  elm_widget_focus_next_get(cur, dir, next, next_item);
+
+        eo_do(obj,
+              elm_interface_scrollable_content_pos_get(&x, &y),
+              elm_interface_scrollable_step_size_get(&step_x, &step_y),
+              elm_interface_scrollable_content_viewport_geometry_get
+              (NULL, NULL, &v_w, &v_h));
+        evas_object_geometry_get(sd->content, &c_x, &c_y, NULL, NULL);
+        evas_object_geometry_get(*next, &f_x, &f_y, &f_w, &f_h);
+        l_x = f_x - c_x - step_x;
+        l_y = f_y - c_y - step_y;
+        l_w = f_w + (step_x * 2);
+        l_h = f_h + (step_y * 2);
+
+        if (!ret || ELM_RECTS_INTERSECT(x, y, v_w, v_h, l_x, l_y, l_w, l_h))
+          return ret;
      }
 
    /* Return */
@@ -450,7 +459,64 @@ _elm_scroller_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Scroller_Data *sd, 
 EOLIAN static Eina_Bool
 _elm_scroller_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Scroller_Data *_pd EINA_UNUSED)
 {
-   return EINA_FALSE;
+   return EINA_TRUE;
+}
+
+EOLIAN static Eina_Bool
+_elm_scroller_elm_widget_focus_direction(Eo *obj, Elm_Scroller_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
+{
+   Evas_Object *cur;
+
+   if (!sd->content) return EINA_FALSE;
+
+   cur = sd->content;
+
+   /* access */
+   if (_elm_config->access_mode)
+     {
+        if ((elm_widget_can_focus_get(cur)) ||
+            (elm_widget_child_can_focus_get(cur)))
+          {
+             return elm_widget_focus_direction_get(cur, base, degree, direction, direction_item, weight);
+          }
+
+        return EINA_FALSE;
+     }
+
+   /* Try focus cycle in subitem */
+   if ((elm_widget_can_focus_get(cur)) ||
+       (elm_widget_child_can_focus_get(cur)))
+     {
+        Eina_Bool ret = EINA_FALSE;
+        Evas_Coord x = 0, y = 0;
+        Evas_Coord v_w = 0, v_h = 0;
+        Evas_Coord c_x = 0, c_y = 0;
+        Evas_Coord f_x = 0, f_y = 0, f_w = 0, f_h = 0;
+        Evas_Coord l_x = 0, l_y = 0, l_w = 0, l_h = 0;
+        Evas_Coord step_x = 0, step_y = 0;
+
+        ret = elm_widget_focus_direction_get(cur, base, degree, direction, direction_item, weight);
+
+        eo_do(obj,
+              elm_interface_scrollable_content_pos_get(&x, &y),
+              elm_interface_scrollable_step_size_get(&step_x, &step_y),
+              elm_interface_scrollable_content_viewport_geometry_get
+              (NULL, NULL, &v_w, &v_h));
+        evas_object_geometry_get(sd->content, &c_x, &c_y, NULL, NULL);
+        evas_object_geometry_get(*direction, &f_x, &f_y, &f_w, &f_h);
+        l_x = f_x - c_x - step_x;
+        l_y = f_y - c_y - step_y;
+        l_w = f_w + (step_x * 2);
+        l_h = f_h + (step_y * 2);
+
+        if (!ret || ELM_RECTS_INTERSECT(x, y, v_w, v_h, l_x, l_y, l_w, l_h))
+          return ret;
+     }
+
+   /* Return */
+   *direction = (Evas_Object *)obj;
+
+   return !elm_widget_focus_get(obj);
 }
 
 static void

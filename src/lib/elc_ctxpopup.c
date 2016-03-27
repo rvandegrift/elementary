@@ -71,22 +71,22 @@ _elm_ctxpopup_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Ctx
 }
 
 EOLIAN static Eina_Bool
-_elm_ctxpopup_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Ctxpopup_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_ctxpopup_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Ctxpopup_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    if (!sd)
      return EINA_FALSE;
 
-   if (!elm_widget_focus_next_get(sd->box, dir, next))
+   if (!elm_widget_focus_next_get(sd->box, dir, next, next_item))
      {
         elm_widget_focused_object_clear(sd->box);
-        elm_widget_focus_next_get(sd->box, dir, next);
+        elm_widget_focus_next_get(sd->box, dir, next, next_item);
      }
 
    return EINA_TRUE;
 }
 
 EOLIAN static Eina_Bool
-_elm_ctxpopup_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Ctxpopup_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_ctxpopup_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Ctxpopup_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Eina_Bool int_ret;
 
@@ -101,7 +101,7 @@ _elm_ctxpopup_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Ctxpopup_Data 
    l = eina_list_append(l, sd->box);
 
    int_ret = elm_widget_focus_list_direction_get
-            (obj, base, l, list_data_get, degree, direction, weight);
+            (obj, base, l, list_data_get, degree, direction, direction_item, weight);
    eina_list_free(l);
 
    return int_ret;
@@ -115,6 +115,7 @@ _key_action_move(Evas_Object *obj, const char *params)
 
    if (!sd->box) return EINA_FALSE;
 
+   _elm_widget_focus_auto_show(obj);
    if (!strcmp(dir, "previous"))
      elm_widget_focus_cycle(sd->box, ELM_FOCUS_PREVIOUS);
    else if (!strcmp(dir, "next"))
@@ -969,7 +970,7 @@ _on_show(void *data EINA_UNUSED,
          * XXX: Giving focus to the list when it has nothing selected makes
          * it select the first of its items, which makes the popup in
          * Terminology never open and instead just trigger the first option.
-         * I'll let as an excercise to the reader to figure out why that
+         * I'll let as an exercise to the reader to figure out why that
          * is so fucking annoying. Extra points for noting why this is my
          * choice of a "fix" instead of fixing the actual focus/select issue
          * that seems to be spread all over Elementary.

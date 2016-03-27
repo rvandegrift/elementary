@@ -228,8 +228,8 @@ struct _Elm_Win_Data
 };
 
 static const char SIG_DELETE_REQUEST[] = "delete,request";
-static const char SIG_FOCUS_OUT[] = "focus,out"; // deprecated. use "focused" instead.
-static const char SIG_FOCUS_IN[] = "focus,in"; // deprecated. use "unfocused" instead.
+static const char SIG_FOCUS_OUT[] = "focus,out"; // deprecated. use "unfocused" instead.
+static const char SIG_FOCUS_IN[] = "focus,in"; // deprecated. use "focused" instead.
 static const char SIG_MOVED[] = "moved";
 static const char SIG_WITHDRAWN[] = "withdrawn";
 static const char SIG_ICONIFIED[] = "iconified";
@@ -245,7 +245,6 @@ static const char SIG_INDICATOR_PROP_CHANGED[] = "indicator,prop,changed";
 static const char SIG_ROTATION_CHANGED[] = "rotation,changed";
 static const char SIG_PROFILE_CHANGED[] = "profile,changed";
 static const char SIG_WM_ROTATION_CHANGED[] = "wm,rotation,changed";
-static const char SIG_THEME_CHANGED[] = "theme,changed";
 
 static const Evas_Smart_Cb_Description _smart_callbacks[] = {
    {SIG_DELETE_REQUEST, ""},
@@ -435,23 +434,13 @@ _elm_win_state_eval(void *data EINA_UNUSED)
                             evas_render_dump(evas);
                          }
                     }
-               }
-             else
-               {
-                  if (evas_object_data_get(obj, "__win_auto_norender"))
-                    {
-                       elm_win_norender_pop(obj);
-                       evas_object_data_del(obj, "__win_auto_norender");
-                    }
+                  continue;
                }
           }
-        else
+        if (evas_object_data_get(obj, "__win_auto_norender"))
           {
-             if (evas_object_data_get(obj, "__win_auto_norender"))
-               {
-                  elm_win_norender_pop(obj);
-                  evas_object_data_del(obj, "__win_auto_norender");
-               }
+             elm_win_norender_pop(obj);
+             evas_object_data_del(obj, "__win_auto_norender");
           }
      }
    if (((_elm_config->auto_throttle) &&
@@ -890,6 +879,14 @@ _elm_win_focus_highlight_visible_set(Elm_Win_Data *sd,
      }
 }
 
+Evas_Object *
+_elm_win_focus_highlight_object_get(Evas_Object *obj)
+{
+   ELM_WIN_DATA_GET(obj, sd);
+
+   return sd->focus_highlight.fobj;
+}
+
 static void
 _elm_win_focus_highlight_anim_setup(Elm_Win_Data *sd,
                                     Evas_Object *obj)
@@ -1002,7 +999,11 @@ _elm_win_focus_highlight_reconfigure_job(void *data)
      elm_widget_signal_emit(target, sig, "elm");
 
    if ((!target) || (!common_visible) || (sd->focus_highlight.cur.in_theme))
-     goto the_end;
+     {
+        if (target)
+          _elm_win_focus_highlight_simple_setup(sd, fobj);
+        goto the_end;
+     }
 
    if (previous)
      focus_style_previous = elm_widget_focus_highlight_style_get(previous);
@@ -1075,10 +1076,28 @@ _elm_win_focus_in(Ecore_Evas *ee)
         if (!elm_widget_focus_order_get(obj)
             || (obj == elm_widget_newest_focus_order_get(obj, &order, EINA_TRUE)))
           {
-             elm_widget_focus_steal(obj);
+             elm_widget_focus_steal(obj, NULL);
           }
         else
-          elm_widget_focus_restore(obj);
+          {
+             Evas_Object *newest = NULL;
+             unsigned int newest_focus_order = 0;
+
+             newest = elm_widget_newest_focus_order_get
+               (obj, &newest_focus_order, EINA_TRUE);
+             if ((newest) &&
+                 _elm_widget_onscreen_is(newest))
+               {
+                  if (_elm_win_focus_highlight_object_get(obj))
+                    elm_widget_focus_restore(obj);
+                  else if (!elm_object_focus_get(newest))
+                    elm_widget_focus_restore(obj);
+                  else
+                    evas_object_focus_set(obj, EINA_TRUE);
+               }
+             else
+               evas_object_focus_set(obj, EINA_TRUE);
+          }
      }
    // FIXME: the event is deprecated but still in use.
    // Has to be removed in EFL2.0
@@ -1093,7 +1112,7 @@ _elm_win_focus_in(Ecore_Evas *ee)
 
    if (_elm_config->atspi_mode)
      {
-        eo_do(obj, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_ACTIVATED, NULL));
+        elm_interface_atspi_window_activated_signal_emit(obj);
         elm_interface_atspi_accessible_state_changed_signal_emit(obj, ELM_ATSPI_STATE_ACTIVE, EINA_TRUE);
      }
 
@@ -1131,7 +1150,7 @@ _elm_win_focus_out(Ecore_Evas *ee)
 
    if (_elm_config->atspi_mode)
      {
-        eo_do(obj, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_DEACTIVATED, NULL));
+        elm_interface_atspi_window_deactivated_signal_emit(obj);
         elm_interface_atspi_accessible_state_changed_signal_emit(obj, ELM_ATSPI_STATE_ACTIVE, EINA_FALSE);
      }
 
@@ -1270,6 +1289,23 @@ _elm_win_frame_obj_update(Elm_Win_Data *sd)
 }
 
 static void
+_elm_win_frame_maximized_state_update(Elm_Win_Data *sd, Eina_Bool maximized)
+{
+   const char *emission;
+
+   if (maximized)
+     emission = "elm,state,maximized";
+   else
+     emission = "elm,state,unmaximized";
+
+   edje_object_signal_emit(sd->frame_obj, emission, "elm");
+   edje_object_message_signal_process(sd->frame_obj);
+   evas_object_smart_calculate(sd->frame_obj);
+
+   _elm_win_frame_obj_update(sd);
+}
+
+static void
 _elm_win_state_change(Ecore_Evas *ee)
 {
    Elm_Win_Data *sd = _elm_win_associate_get(ee);
@@ -1338,15 +1374,13 @@ _elm_win_state_change(Ecore_Evas *ee)
           {
              eo_do(obj, eo_event_callback_call(ELM_WIN_EVENT_ICONIFIED, NULL));
              if (_elm_config->atspi_mode)
-               eo_do(obj, eo_event_callback_call
-                 (ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_MINIMIZED, NULL));
+               elm_interface_atspi_window_minimized_signal_emit(obj);
           }
         else
           {
              eo_do(obj, eo_event_callback_call(ELM_WIN_EVENT_NORMAL, NULL));
              if (_elm_config->atspi_mode)
-               eo_do(obj, eo_event_callback_call
-                 (ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_RESTORED, NULL));
+               elm_interface_atspi_window_restored_signal_emit(obj);
           }
      }
    if (ch_sticky)
@@ -1384,16 +1418,15 @@ _elm_win_state_change(Ecore_Evas *ee)
           {
              eo_do(obj, eo_event_callback_call(ELM_WIN_EVENT_MAXIMIZED, NULL));
              if (_elm_config->atspi_mode)
-               eo_do(obj, eo_event_callback_call
-                 (ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_MAXIMIZED, NULL));
+               elm_interface_atspi_window_maximized_signal_emit(obj);
           }
         else
           {
              eo_do(obj, eo_event_callback_call(ELM_WIN_EVENT_UNMAXIMIZED, NULL));
              if (_elm_config->atspi_mode)
-               eo_do(obj, eo_event_callback_call
-                 (ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_RESTORED, NULL));
+               elm_interface_atspi_window_restored_signal_emit(obj);
           }
+        _elm_win_frame_maximized_state_update(sd, sd->maximized);
      }
    if (ch_profile)
      {
@@ -1421,7 +1454,7 @@ _elm_win_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_Win_Data *_pd
 }
 
 EOLIAN static Eina_Bool
-_elm_win_elm_widget_focus_next(Eo *obj, Elm_Win_Data *_pd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_win_elm_widget_focus_next(Eo *obj, Elm_Win_Data *_pd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd, EINA_FALSE);
 
@@ -1439,7 +1472,7 @@ _elm_win_elm_widget_focus_next(Eo *obj, Elm_Win_Data *_pd EINA_UNUSED, Elm_Focus
           }
         list_data_get = eina_list_data_get;
 
-        elm_widget_focus_list_next_get(obj, items, list_data_get, dir, next);
+        elm_widget_focus_list_next_get(obj, items, list_data_get, dir, next, next_item);
 
         if (*next) return EINA_TRUE;
      }
@@ -1454,7 +1487,7 @@ _elm_win_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Win_Data
 }
 
 EOLIAN static Eina_Bool
-_elm_win_elm_widget_focus_direction(Eo *obj, Elm_Win_Data *_pd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_win_elm_widget_focus_direction(Eo *obj, Elm_Win_Data *_pd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    const Eina_List *items;
    void *(*list_data_get)(const Eina_List *list);
@@ -1470,17 +1503,17 @@ _elm_win_elm_widget_focus_direction(Eo *obj, Elm_Win_Data *_pd EINA_UNUSED, cons
         list_data_get = eina_list_data_get;
 
         return elm_widget_focus_list_direction_get
-                 (obj, base, items, list_data_get, degree, direction, weight);
+                 (obj, base, items, list_data_get, degree, direction, direction_item, weight);
      }
 
    return EINA_FALSE;
 }
 
 EOLIAN static Eina_Bool
-_elm_win_elm_widget_on_focus(Eo *obj, Elm_Win_Data *sd)
+_elm_win_elm_widget_on_focus(Eo *obj, Elm_Win_Data *sd, Elm_Object_Item *item EINA_UNUSED)
 {
    Eina_Bool int_ret = EINA_FALSE;
-   eo_do_super(obj, MY_CLASS, int_ret = elm_obj_widget_on_focus());
+   eo_do_super(obj, MY_CLASS, int_ret = elm_obj_widget_on_focus(NULL));
    if (!int_ret) return EINA_TRUE;
 
    if (sd->img_obj)
@@ -1501,10 +1534,8 @@ static Eina_Bool
 _key_action_move(Evas_Object *obj, const char *params)
 {
    const char *dir = params;
-   Evas_Object *top;
 
-   top = elm_widget_top_get(obj);
-   if (top && eo_isa(top, ELM_WIN_CLASS)) _elm_win_focus_auto_show(top);
+   _elm_widget_focus_auto_show(obj);
    if (!strcmp(dir, "previous"))
      elm_widget_focus_cycle(obj, ELM_FOCUS_PREVIOUS);
    else if (!strcmp(dir, "next"))
@@ -1561,7 +1592,17 @@ _elm_win_evas_object_smart_show(Eo *obj, Elm_Win_Data *sd)
         INCREMENT_MODALITY()
      }
 
+   evas_smart_objects_calculate(evas_object_evas_get(obj));
+
    TRAP(sd, show);
+
+   if (_elm_config->atspi_mode)
+     {
+        Eo *bridge = _elm_atspi_bridge_get();
+        elm_interface_atspi_window_created_signal_emit(obj);
+        if (bridge)
+           elm_interface_atspi_accessible_children_changed_added_signal_emit(elm_atspi_bridge_root_get(bridge), obj);
+     }
 
    if (sd->shot.info) _shot_handle(sd);
 }
@@ -1600,7 +1641,12 @@ _elm_win_evas_object_smart_hide(Eo *obj, Elm_Win_Data *sd)
 #endif
      }
    if (_elm_config->atspi_mode)
-     eo_do(obj, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_DESTROYED, NULL));
+     {
+        Eo *bridge = _elm_atspi_bridge_get();
+        elm_interface_atspi_window_destroyed_signal_emit(obj);
+        if (bridge)
+           elm_interface_atspi_accessible_children_changed_del_signal_emit(elm_atspi_bridge_root_get(bridge), obj);
+     }
 
    if (_elm_win_policy_quit_triggered(obj))
      _elm_win_flush_cache_and_exit(obj);
@@ -1801,7 +1847,7 @@ _win_img_focus_in(void *data,
                   Evas_Object *obj EINA_UNUSED,
                   void *event_info EINA_UNUSED)
 {
-   elm_widget_focus_steal(data);
+   elm_widget_focus_steal(data, NULL);
 }
 
 static void
@@ -1874,6 +1920,9 @@ _elm_win_evas_object_smart_del(Eo *obj, Elm_Win_Data *sd)
 
    if (sd->autodel_clear) *(sd->autodel_clear) = -1;
 
+   if (_elm_config->atspi_mode)
+     elm_interface_atspi_window_destroyed_signal_emit(obj);
+
    _elm_win_list = eina_list_remove(_elm_win_list, obj);
    _elm_win_count--;
    _elm_win_state_eval_queue();
@@ -1938,9 +1987,6 @@ _elm_win_evas_object_smart_del(Eo *obj, Elm_Win_Data *sd)
      {
         _elm_win_flush_cache_and_exit(obj);
      }
-
-   if (_elm_config->atspi_mode)
-     eo_do(obj, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_DESTROYED, NULL));
 }
 
 static void
@@ -2059,7 +2105,7 @@ _elm_win_delete_request(Ecore_Evas *ee)
      evas_object_hide(obj);
    // FIXME: if above callback deletes - then the below will be invalid
    if (_elm_config->atspi_mode)
-     eo_do(obj, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_DESTROYED, NULL));
+     elm_interface_atspi_window_destroyed_signal_emit(obj);
    if (autodel) evas_object_del(obj);
    else sd->autodel_clear = NULL;
    evas_object_unref(obj);
@@ -2603,6 +2649,8 @@ _elm_win_frame_cb_move_start(void *data,
                              const char *sig EINA_UNUSED,
                              const char *source)
 {
+   int ox, oy;
+
    ELM_WIN_DATA_GET(data, sd);
 
    if (!sd) return;
@@ -2622,7 +2670,9 @@ _elm_win_frame_cb_move_start(void *data,
     * position. The new position will get updated automatically when
     * the move is finished */
 
-   ecore_evas_wayland_move(sd->ee, sd->screen.x, sd->screen.y);
+   edje_object_part_geometry_get(sd->frame_obj, "elm.spacer.opaque",
+                                 &ox, &oy, NULL, NULL);
+   ecore_evas_wayland_move(sd->ee, ox, oy);
 }
 
 static void
@@ -2809,23 +2859,6 @@ _elm_win_frame_cb_minimize(void *data,
 }
 
 static void
-_elm_win_frame_maximized_state_update(Elm_Win_Data *sd, Eina_Bool maximized)
-{
-   const char *emission;
-
-   if (maximized)
-     emission = "elm,state,maximized";
-   else
-     emission = "elm,state,unmaximized";
-
-   edje_object_signal_emit(sd->frame_obj, emission, "elm");
-   edje_object_message_signal_process(sd->frame_obj);
-   evas_object_smart_calculate(sd->frame_obj);
-
-   _elm_win_frame_obj_update(sd);
-}
-
-static void
 _elm_win_frame_cb_maximize(void *data,
                            Evas_Object *obj EINA_UNUSED,
                            const char *sig EINA_UNUSED,
@@ -2837,8 +2870,6 @@ _elm_win_frame_cb_maximize(void *data,
    if (!sd) return;
    if (sd->maximized) value = EINA_FALSE;
    else value = EINA_TRUE;
-
-   _elm_win_frame_maximized_state_update(sd, value);
 
    TRAP(sd, maximized_set, value);
 }
@@ -2946,7 +2977,7 @@ _elm_win_frame_add(Elm_Win_Data *sd,
 #endif
 
    /* NB: Do NOT remove these calls !! Needed to calculate proper
-    * framespace on inital show of the window */
+    * framespace on initial show of the window */
    edje_object_size_min_calc(sd->frame_obj, &mw, &mh);
    evas_object_move(sd->frame_obj, 0, 0);
    evas_object_resize(sd->frame_obj, mw, mh);
@@ -3502,8 +3533,12 @@ _elm_win_finalize_internal(Eo *obj, Elm_Win_Data *sd, const char *name, Elm_Win_
              else
                {
 // add all engines with selected engine first - if any
-                  enginelist[p++] = ENGINE_GET();
-
+                  if (elm_config_preferred_engine_get())
+                    enginelist[p++] = elm_config_preferred_engine_get();
+// add check _elm_gl_preference whether "none" or not
+                  else if (!elm_config_accel_preference_get() ||
+                           strcmp(elm_config_accel_preference_get(),"none"))
+                    enginelist[p++] = _elm_config->engine;
 // add all engines with gl/accelerated ones first - only engines compiled
 #ifdef HAVE_ELEMENTARY_X
                   enginelist[p++] = ELM_SOFTWARE_X11;
@@ -3623,15 +3658,6 @@ _elm_win_finalize_internal(Eo *obj, Elm_Win_Data *sd, const char *name, Elm_Win_
      }
 
    eo_do(obj, eo_parent_set(ecore_evas_get(tmp_sd.ee)));
-
-   /* XXX: This hack is needed because we parent ourselves to an inside object.
-    * That should be fixed, and then this can be fixed.
-    * Only needed if there wasn't a parent, because if there was, we are just
-    * replacing it. */
-   if (!parent)
-     {
-        eo_unref(obj);
-     }
 
    eo_do_super(obj, MY_CLASS, eo_constructor());
    eo_do(obj,
@@ -3799,6 +3825,19 @@ _elm_win_finalize_internal(Eo *obj, Elm_Win_Data *sd, const char *name, Elm_Win_
           elm_win_focus_highlight_animate_set(obj, EINA_TRUE);
      }
 
+   //Prohibiting auto-rendering, until elm_win is shown.
+   if (_elm_config->auto_norender_withdrawn)
+     {
+        if (elm_win_withdrawn_get(obj))
+          {
+             if (!evas_object_data_get(obj, "__win_auto_norender"))
+               {
+                  elm_win_norender_push(obj);
+                  evas_object_data_set(obj, "__win_auto_norender", obj);
+               }
+          }
+     }
+
 #ifdef ELM_DEBUG
    Evas_Modifier_Mask mask = evas_key_modifier_mask_get(sd->evas, "Control");
    evas_object_event_callback_add
@@ -3853,8 +3892,8 @@ _elm_win_finalize_internal(Eo *obj, Elm_Win_Data *sd, const char *name, Elm_Win_
      }
 
    eo_do(obj, elm_interface_atspi_accessible_role_set(ELM_ATSPI_ROLE_WINDOW));
-   if (_elm_config->atspi_mode == ELM_ATSPI_MODE_ON)
-     eo_do(obj, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_CREATED, NULL));
+   if (_elm_config->atspi_mode)
+     elm_interface_atspi_window_created_signal_emit(obj);
 
    evas_object_show(sd->edje);
 
@@ -5473,7 +5512,7 @@ _elm_win_focus_highlight_start(Evas_Object *obj)
 {
    ELM_WIN_DATA_GET(obj, sd);
 
-   if (!elm_win_focus_highlight_enabled_get(obj)) return;
+   if (!(sd->focus_highlight.enabled) && !(sd->focus_highlight.auto_enabled)) return;
    sd->focus_highlight.cur.visible = EINA_TRUE;
    sd->focus_highlight.geometry_changed = EINA_TRUE;
    _elm_win_focus_highlight_reconfigure_job(obj);
@@ -5535,14 +5574,23 @@ _on_atspi_bus_connected(void *data EINA_UNUSED, Eo *obj EINA_UNUSED, const Eo_Ev
         /**
          * Reemit accessibility events when AT-SPI2 connection is begin
          * established. This assures that Assistive Technology clients will
-         * recieve all org.a11y.window events and could keep track of active
+         * receive all org.a11y.window events and could keep track of active
          * windows whithin system.
          */
-        eo_do(win, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_CREATED, NULL));
+        elm_interface_atspi_window_created_signal_emit(win);
         if (elm_win_focus_get(win))
-           eo_do(win, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_ACTIVATED, NULL));
+          {
+             elm_interface_atspi_window_activated_signal_emit(win);
+             /** Reemit focused event to inform atspi clients about currently
+              * focused object **/
+             unsigned int order = 0;
+             Evas_Object *target;
+             eo_do(win, target = elm_obj_widget_newest_focus_order_get(&order, EINA_TRUE));
+             if (target)
+               elm_interface_atspi_accessible_state_changed_signal_emit(target, ELM_ATSPI_STATE_FOCUSED, EINA_TRUE);
+          }
         else
-           eo_do(win, eo_event_callback_call(ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_DEACTIVATED, NULL));
+          elm_interface_atspi_window_deactivated_signal_emit(win);
      }
    return EINA_TRUE;
 }

@@ -41,11 +41,48 @@ static const Evas_Smart_Cb_Description _smart_callbacks[] = {
 static Eina_Bool _key_action_spin(Evas_Object *obj, const char *params);
 static Eina_Bool _key_action_toggle(Evas_Object *obj, const char *params);
 
+static Eina_Bool
+_inc_button_clicked_cb(void *data, Eo *obj EINA_UNUSED,
+                       const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
+static Eina_Bool
+_inc_button_pressed_cb(void *data, Eo *obj EINA_UNUSED,
+                       const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
+static Eina_Bool
+_inc_button_unpressed_cb(void *data, Eo *obj EINA_UNUSED,
+                     const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
+static Eina_Bool
+_inc_dec_button_mouse_move_cb(void *data, Eo *obj EINA_UNUSED,
+                              const Eo_Event_Description *desc EINA_UNUSED, void *event_info);
+static Eina_Bool
+_dec_button_clicked_cb(void *data, Eo *obj EINA_UNUSED,
+                       const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
+static Eina_Bool
+_dec_button_pressed_cb(void *data, Eo *obj EINA_UNUSED,
+                       const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
+static Eina_Bool
+_dec_button_unpressed_cb(void *data, Eo *obj EINA_UNUSED,
+                     const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
+
 static const Elm_Action key_actions[] = {
    {"spin", _key_action_spin},
    {"toggle", _key_action_toggle},
    {NULL, NULL}
 };
+
+EO_CALLBACKS_ARRAY_DEFINE(_inc_button_cb,
+   { EVAS_CLICKABLE_INTERFACE_EVENT_CLICKED, _inc_button_clicked_cb},
+   { EVAS_CLICKABLE_INTERFACE_EVENT_PRESSED, _inc_button_pressed_cb},
+   { EVAS_CLICKABLE_INTERFACE_EVENT_UNPRESSED, _inc_button_unpressed_cb},
+   { EVAS_OBJECT_EVENT_MOUSE_MOVE, _inc_dec_button_mouse_move_cb }
+);
+
+EO_CALLBACKS_ARRAY_DEFINE(_dec_button_cb,
+   { EVAS_CLICKABLE_INTERFACE_EVENT_CLICKED, _dec_button_clicked_cb},
+   { EVAS_CLICKABLE_INTERFACE_EVENT_PRESSED, _dec_button_pressed_cb},
+   { EVAS_CLICKABLE_INTERFACE_EVENT_UNPRESSED, _dec_button_unpressed_cb},
+   { EVAS_OBJECT_EVENT_MOUSE_MOVE, _inc_dec_button_mouse_move_cb }
+);
+
 
 static void _access_increment_decrement_info_say(Evas_Object *obj,
                                                  Eina_Bool is_incremented);
@@ -71,8 +108,18 @@ _is_label_format_integer(const char *fmt)
 static void
 _entry_show(Elm_Spinner_Data *sd)
 {
+   Eina_List *l;
+   Elm_Spinner_Special_Value *sv;
    char buf[32], fmt[32] = "%0.f";
 
+   EINA_LIST_FOREACH(sd->special_values, l, sv)
+     {
+        if (sv->value == sd->val)
+          {
+             snprintf(buf, sizeof(buf), "%s", sv->label);
+             goto apply;
+          }
+     }
    /* try to construct just the format from given label
     * completely ignoring pre/post words
     */
@@ -108,11 +155,13 @@ _entry_show(Elm_Spinner_Data *sd)
                }
           }
      }
+
    if (_is_label_format_integer(fmt))
      snprintf(buf, sizeof(buf), fmt, (int)sd->val);
    else
      snprintf(buf, sizeof(buf), fmt, sd->val);
 
+apply:
    elm_object_text_set(sd->ent, buf);
 }
 
@@ -732,6 +781,23 @@ _dec_button_unpressed_cb(void *data,
    return EINA_TRUE;
 }
 
+static Eina_Bool
+_inc_dec_button_mouse_move_cb(void *data, Eo *obj EINA_UNUSED,
+                              const Eo_Event_Description *desc EINA_UNUSED,
+                              void *event_info)
+{
+   Evas_Event_Mouse_Move *ev = event_info;
+   ELM_SPINNER_DATA_GET(data, sd);
+
+   if ((ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) && sd->longpress_timer)
+     {
+        ecore_timer_del(sd->longpress_timer);
+        sd->longpress_timer = NULL;
+     }
+
+   return EINA_TRUE;
+}
+
 EOLIAN static void
 _elm_spinner_elm_layout_sizing_eval(Eo *obj, Elm_Spinner_Data *_pd EINA_UNUSED)
 {
@@ -747,10 +813,10 @@ _elm_spinner_elm_layout_sizing_eval(Eo *obj, Elm_Spinner_Data *_pd EINA_UNUSED)
 }
 
 EOLIAN static Eina_Bool
-_elm_spinner_elm_widget_on_focus(Eo *obj, Elm_Spinner_Data *sd)
+_elm_spinner_elm_widget_on_focus(Eo *obj, Elm_Spinner_Data *sd, Elm_Object_Item *item EINA_UNUSED)
 {
    Eina_Bool int_ret = EINA_FALSE;
-   eo_do_super(obj, MY_CLASS, int_ret = elm_obj_widget_on_focus());
+   eo_do_super(obj, MY_CLASS, int_ret = elm_obj_widget_on_focus(NULL));
    if (!int_ret) return EINA_FALSE;
 
    if (!elm_widget_focus_get(obj))
@@ -1008,12 +1074,8 @@ _elm_spinner_evas_object_smart_add(Eo *obj, Elm_Spinner_Data *priv)
         priv->inc_button = elm_button_add(obj);
         elm_object_style_set(priv->inc_button, "spinner/increase/default");
 
-        eo_do(priv->inc_button, eo_event_callback_add
-          (EVAS_CLICKABLE_INTERFACE_EVENT_CLICKED, _inc_button_clicked_cb, obj));
-        eo_do(priv->inc_button, eo_event_callback_add
-          (EVAS_CLICKABLE_INTERFACE_EVENT_PRESSED, _inc_button_pressed_cb, obj));
-        eo_do(priv->inc_button, eo_event_callback_add
-          (EVAS_CLICKABLE_INTERFACE_EVENT_UNPRESSED, _inc_button_unpressed_cb, obj));
+        eo_do(priv->inc_button,
+              eo_event_callback_array_add(_inc_button_cb(), obj));
 
         elm_layout_content_set(obj, "elm.swallow.inc_button", priv->inc_button);
         elm_widget_sub_object_add(obj, priv->inc_button);
@@ -1030,12 +1092,8 @@ _elm_spinner_evas_object_smart_add(Eo *obj, Elm_Spinner_Data *priv)
         priv->dec_button = elm_button_add(obj);
         elm_object_style_set(priv->dec_button, "spinner/decrease/default");
 
-        eo_do(priv->dec_button, eo_event_callback_add
-          (EVAS_CLICKABLE_INTERFACE_EVENT_CLICKED, _dec_button_clicked_cb, obj));
-        eo_do(priv->dec_button, eo_event_callback_add
-          (EVAS_CLICKABLE_INTERFACE_EVENT_PRESSED, _dec_button_pressed_cb, obj));
-        eo_do(priv->dec_button, eo_event_callback_add
-          (EVAS_CLICKABLE_INTERFACE_EVENT_UNPRESSED, _dec_button_unpressed_cb, obj));
+        eo_do(priv->dec_button,
+              eo_event_callback_array_add(_dec_button_cb(), obj));
 
         elm_layout_content_set(obj, "elm.swallow.dec_button", priv->dec_button);
         elm_widget_sub_object_add(obj, priv->dec_button);
@@ -1094,10 +1152,9 @@ EOLIAN static Eina_Bool
 _elm_spinner_elm_widget_theme_apply(Eo *obj, Elm_Spinner_Data *sd)
 {
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd, EINA_FALSE);
-   Eina_Bool int_ret = elm_layout_theme_set(obj, "spinner", "base",
-                              elm_widget_style_get(obj));
 
-   if (!int_ret) CRI("Failed to set layout!");
+   if (!elm_layout_theme_set(obj, "spinner", "base", elm_widget_style_get(obj)))
+     CRI("Failed to set layout!");
 
    if (edje_object_part_exists(wd->resize_obj, "elm.swallow.dec_button"))
      sd->button_layout = EINA_TRUE;
@@ -1140,7 +1197,7 @@ _elm_spinner_elm_widget_theme_apply(Eo *obj, Elm_Spinner_Data *sd)
      _access_spinner_register(obj, EINA_TRUE);
 
    elm_layout_sizing_eval(obj);
-   return int_ret;
+   return EINA_TRUE;
 }
 
 static Eina_Bool _elm_spinner_smart_focus_next_enable = EINA_FALSE;
@@ -1161,7 +1218,7 @@ _elm_spinner_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Spin
 }
 
 EOLIAN static Eina_Bool
-_elm_spinner_elm_widget_focus_direction(Eo *obj, Elm_Spinner_Data *_pd, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_spinner_elm_widget_focus_direction(Eo *obj, Elm_Spinner_Data *_pd, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Eina_Bool ret;
    Eina_List *items = NULL;
@@ -1181,7 +1238,7 @@ _elm_spinner_elm_widget_focus_direction(Eo *obj, Elm_Spinner_Data *_pd, const Ev
    items = eina_list_append(items, _pd->dec_button);
 
    ret = elm_widget_focus_list_direction_get
-        (obj, base, items, list_data_get, degree, direction, weight);
+        (obj, base, items, list_data_get, degree, direction, direction_item, weight);
    eina_list_free(items);
 
    return ret;
@@ -1201,7 +1258,7 @@ _access_object_get(const Evas_Object *obj, const char* part)
 }
 
 EOLIAN static Eina_Bool
-_elm_spinner_elm_widget_focus_next(Eo *obj, Elm_Spinner_Data *_pd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_spinner_elm_widget_focus_next(Eo *obj, Elm_Spinner_Data *_pd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Evas_Object *ao;
    Eina_List *items = NULL;
@@ -1224,7 +1281,7 @@ _elm_spinner_elm_widget_focus_next(Eo *obj, Elm_Spinner_Data *_pd, Elm_Focus_Dir
 
      }
    return elm_widget_focus_list_next_get
-            (obj, items, eina_list_data_get, dir, next);
+            (obj, items, eina_list_data_get, dir, next, next_item);
 }
 
 EOLIAN static void

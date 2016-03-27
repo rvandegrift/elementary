@@ -673,6 +673,10 @@ _selection_data_cb(void *data EINA_UNUSED,
         snprintf(entry_tag, len + 1, tag_string, buf);
         _edje_entry_user_insert(obj, entry_tag);
      }
+   else if (sel_data->format & ELM_SEL_FORMAT_MARKUP)
+     {
+        _edje_entry_user_insert(obj, buf);
+     }
    else
      {
         char *txt = _elm_util_text_to_mkup(buf);
@@ -830,9 +834,6 @@ _elm_entry_elm_widget_theme_apply(Eo *obj, Elm_Entry_Data *sd)
    // -> smart_objects_calculate will call all smart calculate functions,
    // and one of them can delete elm_entry.
    evas_object_ref(obj);
-
-   if (sd->cursor_pos != 0)
-     elm_entry_cursor_pos_set(obj, sd->cursor_pos);
 
    if (elm_widget_focus_get(obj))
      edje_object_signal_emit(sd->entry_edje, "elm,action,focus", "elm");
@@ -1137,7 +1138,7 @@ _return_key_enabled_check(Evas_Object *obj)
 }
 
 EOLIAN static Eina_Bool
-_elm_entry_elm_widget_on_focus(Eo *obj, Elm_Entry_Data *sd)
+_elm_entry_elm_widget_on_focus(Eo *obj, Elm_Entry_Data *sd, Elm_Object_Item *item EINA_UNUSED)
 {
    Evas_Object *top;
    Eina_Bool top_is_win = EINA_FALSE;
@@ -1375,6 +1376,8 @@ _elm_entry_entry_paste(Evas_Object *obj,
                        const char *entry)
 {
    char *str = NULL;
+
+   if (!entry) return;
 
    ELM_ENTRY_CHECK(obj);
    ELM_ENTRY_DATA_GET(obj, sd);
@@ -2020,14 +2023,14 @@ _entry_changed_user_signal_cb(void *data,
              atspi_info.content = edje_info->change.insert.content;
              atspi_info.pos = edje_info->change.insert.pos;
              atspi_info.len = edje_info->change.insert.plain_length;
-             eo_do(data, eo_event_callback_call(ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_INSERTED, &atspi_info));
+             eo_do(ELM_INTERFACE_ATSPI_ACCESSIBLE_MIXIN, elm_interface_atspi_accessible_event_emit(data, ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_INSERTED, &atspi_info));
           }
         else if (edje_info && !edje_info->insert)
           {
              atspi_info.content = edje_info->change.del.content;
              atspi_info.pos = MIN(edje_info->change.del.start, edje_info->change.del.end);
              atspi_info.len = MAX(edje_info->change.del.start, edje_info->change.del.end) - atspi_info.pos;
-             eo_do(data, eo_event_callback_call(ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_REMOVED, &atspi_info));
+             eo_do(ELM_INTERFACE_ATSPI_ACCESSIBLE_MIXIN, elm_interface_atspi_accessible_event_emit(data, ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_REMOVED, &atspi_info));
           }
      }
 }
@@ -2119,7 +2122,7 @@ _entry_selection_changed_signal_cb(void *data,
    _selection_store(ELM_SEL_TYPE_PRIMARY, data);
    _update_selection_handler(data);
    if (_elm_config->atspi_mode)
-     eo_do(data, eo_event_callback_call(ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_SELECTION_CHANGED, NULL));
+     eo_do(ELM_INTERFACE_ATSPI_ACCESSIBLE_MIXIN, elm_interface_atspi_accessible_event_emit(data, ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_SELECTION_CHANGED, NULL));
 }
 
 static void
@@ -2216,7 +2219,7 @@ _entry_cursor_changed_signal_cb(void *data,
      edje_object_signal_emit(sd->entry_edje, "elm,action,show,cursor", "elm");
    _cursor_geometry_recalc(data);
    if (_elm_config->atspi_mode)
-     eo_do(data, eo_event_callback_call(ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_CARET_MOVED, NULL));
+     eo_do(ELM_INTERFACE_ATSPI_ACCESSIBLE_MIXIN, elm_interface_atspi_accessible_event_emit(data, ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_CARET_MOVED, NULL));
 }
 
 static void
@@ -2228,7 +2231,7 @@ _entry_cursor_changed_manual_signal_cb(void *data,
    eo_do(data, eo_event_callback_call
      (ELM_ENTRY_EVENT_CURSOR_CHANGED_MANUAL, NULL));
    if (_elm_config->atspi_mode)
-     eo_do(data, eo_event_callback_call(ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_CARET_MOVED, NULL));
+     eo_do(ELM_INTERFACE_ATSPI_ACCESSIBLE_MIXIN, elm_interface_atspi_accessible_event_emit(data, ELM_INTERFACE_ATSPI_TEXT_EVENT_ACCESS_TEXT_CARET_MOVED, NULL));
 }
 
 static void
@@ -2687,6 +2690,8 @@ _text_append_idler(void *data)
      }
    else
      {
+        edje_object_part_text_cursor_pos_set(sd->entry_edje, "elm.text",
+              EDJE_CURSOR_MAIN, sd->cursor_pos);
         free(sd->append_text_left);
         sd->append_text_left = NULL;
         sd->append_text_idler = NULL;
@@ -2924,6 +2929,8 @@ _entry_text_append(Evas_Object* obj, const char* entry, Eina_Bool set)
                {
                   edje_object_part_text_append(sd->entry_edje, "elm.text", entry);
                }
+             edje_object_part_text_cursor_pos_set(sd->entry_edje, "elm.text",
+                   EDJE_CURSOR_MAIN, sd->cursor_pos);
              eo_do(obj, eo_event_callback_call(ELM_ENTRY_EVENT_TEXT_SET_DONE, NULL));
           }
      }
@@ -3888,7 +3895,7 @@ _elm_entry_is_empty(const Eo *obj EINA_UNUSED, Elm_Entry_Data *sd)
    Evas_Textblock_Cursor *cur;
 
    /* It's a hack until we get the support suggested above.  We just
-    * create a cursor, point it to the begining, and then try to
+    * create a cursor, point it to the beginning, and then try to
     * advance it, if it can advance, the tb is not empty, otherwise it
     * is. */
    tb = edje_object_part_object_get(sd->entry_edje, "elm.text");

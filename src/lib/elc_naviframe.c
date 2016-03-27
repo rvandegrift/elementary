@@ -39,8 +39,6 @@ static const Evas_Smart_Cb_Description _smart_callbacks[] = {
    {NULL, NULL}
 };
 
-static const char SIG_CLICKED[] = "clicked";
-
 static Eina_Bool _on_item_back_btn_clicked(void *data,
       Eo *obj EINA_UNUSED, const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
 
@@ -948,7 +946,7 @@ static Eina_Bool
 _on_item_back_btn_clicked(void *data,
       Eo *obj EINA_UNUSED, const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED)
 {
-   /* Since edje has the event queue, clicked event could be happend
+   /* Since edje has the event queue, clicked event could be happened
       multiple times on some heavy environment. This callback del will
       prevent those scenario and guarantee only one clicked for it's own
       page. */
@@ -1018,12 +1016,16 @@ EOLIAN static Eina_Bool
 _elm_naviframe_elm_layout_text_set(Eo *obj, Elm_Naviframe_Data *sd EINA_UNUSED, const char *part, const char *label)
 {
    Elm_Object_Item *it;
+   const char *text = NULL;
 
    it = elm_naviframe_top_item_get(obj);
    if (!it) return EINA_FALSE;
 
    elm_object_item_part_text_set(it, part, label);
-   return !strcmp(elm_object_item_part_text_get(it, part), label);
+   text = elm_object_item_part_text_get(it, part);
+   if ((text) && !strcmp(text, label))
+     return EINA_TRUE;
+   return EINA_FALSE;
 }
 
 EOLIAN static const char*
@@ -1306,7 +1308,7 @@ _on_obj_size_hints_changed(void *data EINA_UNUSED, Evas *e EINA_UNUSED,
 }
 
 EOLIAN static Eina_Bool
-_elm_naviframe_elm_widget_focus_next(Eo *obj, Elm_Naviframe_Data *sd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_naviframe_elm_widget_focus_next(Eo *obj, Elm_Naviframe_Data *sd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Evas_Object *ao;
 
@@ -1331,7 +1333,7 @@ _elm_naviframe_elm_widget_focus_next(Eo *obj, Elm_Naviframe_Data *sd EINA_UNUSED
         if (ao) l = eina_list_append(l, ao);
      }
 
-   int_ret = elm_widget_focus_list_next_get(obj, l, list_data_get, dir, next);
+   int_ret = elm_widget_focus_list_next_get(obj, l, list_data_get, dir, next, next_item);
    eina_list_free(l);
 
 end:
@@ -1351,7 +1353,7 @@ _elm_naviframe_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Na
 }
 
 EOLIAN static Eina_Bool
-_elm_naviframe_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Naviframe_Data *sd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_naviframe_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Naviframe_Data *sd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Eina_Bool int_ret;
 
@@ -1368,7 +1370,7 @@ _elm_naviframe_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Naviframe_Dat
    l = eina_list_append(l, VIEW(top_it));
 
    int_ret = elm_widget_focus_list_direction_get
-            (obj, base, l, list_data_get, degree, direction, weight);
+            (obj, base, l, list_data_get, degree, direction, direction_item, weight);
 
    eina_list_free(l);
 
@@ -1386,7 +1388,7 @@ _elm_naviframe_evas_object_smart_add(Eo *obj, Elm_Naviframe_Data *priv)
    priv->dummy_edje = wd->resize_obj;
    evas_object_smart_member_add(priv->dummy_edje, obj);
 
-   priv->auto_pushed = EINA_TRUE;
+   priv->auto_pushed = _elm_config->naviframe_prev_btn_auto_pushed;
    priv->freeze_events = EINA_TRUE;
 
    evas_object_event_callback_add(obj, EVAS_CALLBACK_CHANGED_SIZE_HINTS,

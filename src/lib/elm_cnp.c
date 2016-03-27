@@ -218,6 +218,7 @@ static Eina_Bool      _x11_vcard_send               (char *target, void *data, i
 static Eina_Bool      _x11_is_uri_type_data         (X11_Cnp_Selection *sel EINA_UNUSED, Ecore_X_Event_Selection_Notify *notify);
 static Eina_Bool      _x11_notify_handler_targets   (X11_Cnp_Selection *sel, Ecore_X_Event_Selection_Notify *notify);
 static Eina_Bool      _x11_data_preparer_text       (Ecore_X_Event_Selection_Notify *notify, Elm_Selection_Data *ddata, Tmp_Info **tmp_info);
+static Eina_Bool      _x11_data_preparer_markup     (Ecore_X_Event_Selection_Notify *notify, Elm_Selection_Data *ddata, Tmp_Info **tmp_info);
 static Eina_Bool      _x11_data_preparer_image      (Ecore_X_Event_Selection_Notify *notify, Elm_Selection_Data *ddata, Tmp_Info **tmp_info);
 static Eina_Bool      _x11_data_preparer_uri        (Ecore_X_Event_Selection_Notify *notify, Elm_Selection_Data *ddata, Tmp_Info **tmp_info);
 //static int            _x11_notify_handler_html      (X11_Cnp_Selection *sel, Ecore_X_Event_Selection_Notify *notify);
@@ -451,6 +452,7 @@ static Cnp_Atom _atoms[CNP_N_ATOMS] = {
         .formats = ELM_SEL_FORMAT_MARKUP,
 #ifdef HAVE_ELEMENTARY_X
         .x_converter = _x11_general_converter,
+        .x_data_preparer = _x11_data_preparer_markup,
 #endif
    },
    ARRAYINIT(CNP_ATOM_text_urilist) {
@@ -956,6 +958,17 @@ _x11_data_preparer_text(Ecore_X_Event_Selection_Notify *notify,
    return EINA_TRUE;
 }
 
+static Eina_Bool
+_x11_data_preparer_markup(Ecore_X_Event_Selection_Notify *notify,
+      Elm_Selection_Data *ddata, Tmp_Info **tmp_info EINA_UNUSED)
+{
+   Ecore_X_Selection_Data *data = notify->data;
+   ddata->format = ELM_SEL_FORMAT_MARKUP;
+   ddata->data = eina_memdup(data->data, data->length, EINA_TRUE);
+   ddata->len = data->length;
+   return EINA_TRUE;
+}
+
 /**
  * So someone is pasting an image into my entry or widget...
  */
@@ -1331,10 +1344,13 @@ _x11_dnd_dropable_handle(Dropable *dropable, Evas_Coord x, Evas_Coord y, Elm_Xdn
      {
         if (last_dropable == dropable) // same
           {
+             Evas_Coord ox, oy;
+
              cnp_debug("same obj dropable %p\n", dropable->obj);
+             evas_object_geometry_get(dropable->obj, &ox, &oy, NULL, NULL);
              EINA_INLIST_FOREACH_SAFE(dropable->cbs_list, itr, cbs)
                 if ((cbs->types & dropable->last.format) && cbs->poscb)
-                  cbs->poscb(cbs->posdata, dropable->obj, x, y, action);
+                  cbs->poscb(cbs->posdata, dropable->obj, x - ox, y - oy, action);
           }
         else
           {
@@ -1367,7 +1383,10 @@ _x11_dnd_dropable_handle(Dropable *dropable, Evas_Coord x, Evas_Coord y, Elm_Xdn
      {
         if (dropable) // enter new obj
           {
+             Evas_Coord ox, oy;
+
              cnp_debug("enter %p\n", dropable->obj);
+             evas_object_geometry_get(dropable->obj, &ox, &oy, NULL, NULL);
              dropable->last.in = EINA_TRUE;
              EINA_INLIST_FOREACH_SAFE(dropable->cbs_list, itr, cbs)
                {
@@ -1376,7 +1395,8 @@ _x11_dnd_dropable_handle(Dropable *dropable, Evas_Coord x, Evas_Coord y, Elm_Xdn
                        if (cbs->entercb)
                           cbs->entercb(cbs->enterdata, dropable->obj);
                        if (cbs->poscb)
-                          cbs->poscb(cbs->posdata, dropable->obj, x, y, action);
+                          cbs->poscb(cbs->posdata, dropable->obj,
+                                     x - ox, y - oy, action);
                     }
                }
           }
@@ -2226,8 +2246,6 @@ _x11_elm_drag_start(Evas_Object *obj, Elm_Sel_Format format, const char *data,
    evas_object_show(icon);
    evas_object_show(dragwin);
    evas_pointer_canvas_xy_get(evas_object_evas_get(obj), &x3, &y3);
-   _dragx = x3 - x2;
-   _dragy = y3 - y2;
 
    rot = ecore_evas_rotation_get(ee);
    switch (rot)
@@ -2235,18 +2253,26 @@ _x11_elm_drag_start(Evas_Object *obj, Elm_Sel_Format format, const char *data,
       case 90:
          xr = y3;
          yr = ew - x3;
+         _dragx = y3 - y2;
+         _dragy = x3 - x2;
          break;
       case 180:
          xr = ew - x3;
          yr = eh - y3;
+         _dragx = x3 - x2;
+         _dragy = y3 - y2;
          break;
       case 270:
          xr = eh - y3;
          yr = x3;
+         _dragx = y3 - y2;
+         _dragy = x3 - x2;
          break;
       default:
          xr = x3;
          yr = y3;
+         _dragx = x3 - x2;
+         _dragy = y3 - y2;
          break;
      }
    x = ex + xr - _dragx;
@@ -2384,7 +2410,8 @@ _wl_elm_cnp_selection_set(Evas_Object *obj, Elm_Sel_Type selection, Elm_Sel_Form
 
    win = elm_win_wl_window_get(obj);
 
-   if (sel->loss_cb) sel->loss_cb(sel->loss_data, selection);
+   if ((sel->widget != obj) && sel->loss_cb)
+     sel->loss_cb(sel->loss_data, selection);
 
    if (sel->widget)
      evas_object_event_callback_del_full(sel->widget,
@@ -3537,7 +3564,7 @@ _local_elm_cnp_selection_loss_callback_set(Evas_Object *obj EINA_UNUSED,
                                            const void *data EINA_UNUSED)
 {
    _local_elm_cnp_init();
-   // this doesnt need to do anything as we never lose selection to anyone
+   // this doesn't need to do anything as we never lose selection to anyone
    // as thisis local
 }
 

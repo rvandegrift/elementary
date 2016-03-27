@@ -112,14 +112,14 @@ _elm_flip_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_Flip_Data *_
 }
 
 EOLIAN static Eina_Bool
-_elm_flip_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Flip_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_flip_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Flip_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
 
    /* attempt to cycle focus on in sub-items */
    if (sd->state)
-     return elm_widget_focus_next_get(sd->front.content, dir, next);
+     return elm_widget_focus_next_get(sd->front.content, dir, next, next_item);
    else
-     return elm_widget_focus_next_get(sd->back.content, dir, next);
+     return elm_widget_focus_next_get(sd->back.content, dir, next, next_item);
 }
 
 EOLIAN static Eina_Bool
@@ -132,7 +132,7 @@ _elm_flip_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Flip_Da
 }
 
 EOLIAN static Eina_Bool
-_elm_flip_elm_widget_focus_direction(Eo *obj, Elm_Flip_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_flip_elm_widget_focus_direction(Eo *obj, Elm_Flip_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Eina_Bool ret;
 
@@ -147,7 +147,7 @@ _elm_flip_elm_widget_focus_direction(Eo *obj, Elm_Flip_Data *sd, const Evas_Obje
      l = eina_list_append(l, sd->back.content);
 
    ret = elm_widget_focus_list_direction_get
-            (obj, base, l, list_data_get, degree, direction, weight);
+            (obj, base, l, list_data_get, degree, direction, direction_item, weight);
 
    eina_list_free(l);
 
@@ -933,11 +933,10 @@ static void
 _map_uv_set(Evas_Object *obj, Evas_Map *map)
 {
    Evas_Coord x, y, w, h;
-   const char *type = evas_object_type_get(obj);
 
    // FIXME: only handles filled obj
-   if ((type) && (!strcmp(type, "image") &&
-                  !evas_object_image_source_get(obj)))
+   if (eo_isa(obj, EVAS_IMAGE_CLASS) &&
+       !evas_object_image_source_get(obj))
      {
         int iw, ih;
         evas_object_image_size_get(obj, &iw, &ih);

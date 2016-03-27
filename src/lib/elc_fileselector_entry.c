@@ -127,7 +127,7 @@ _elm_fileselector_entry_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSE
 }
 
 EOLIAN static Eina_Bool
-_elm_fileselector_entry_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Fileselector_Entry_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_fileselector_entry_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Fileselector_Entry_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Evas_Object *chain[2];
    Evas_Object *to_focus;
@@ -149,11 +149,11 @@ _elm_fileselector_entry_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Fileselec
 
    i = elm_widget_focus_get(chain[1]);
 
-   if (elm_widget_focus_next_get(chain[i], dir, next)) return EINA_TRUE;
+   if (elm_widget_focus_next_get(chain[i], dir, next, next_item)) return EINA_TRUE;
 
    i = !i;
 
-   if (elm_widget_focus_next_get(chain[i], dir, &to_focus))
+   if (elm_widget_focus_next_get(chain[i], dir, &to_focus, next_item))
      {
         *next = to_focus;
         return !!i;
@@ -309,9 +309,9 @@ _elm_fileselector_entry_evas_object_smart_add(Eo *obj, Elm_Fileselector_Entry_Da
 
 #define SIG_FWD(name, event) \
   eo_do(priv->entry, eo_event_callback_add(event, _##name##_fwd, obj))
-   SIG_FWD(CHANGED, ELM_FILESELECTOR_ENTRY_EVENT_CHANGED);
-   SIG_FWD(ACTIVATED, ELM_FILESELECTOR_ENTRY_EVENT_ACTIVATED);
-   SIG_FWD(PRESS, ELM_FILESELECTOR_ENTRY_EVENT_PRESS);
+   SIG_FWD(CHANGED, ELM_ENTRY_EVENT_CHANGED);
+   SIG_FWD(ACTIVATED, ELM_ENTRY_EVENT_ACTIVATED);
+   SIG_FWD(PRESS, ELM_ENTRY_EVENT_PRESS);
    SIG_FWD(LONGPRESSED, EVAS_CLICKABLE_INTERFACE_EVENT_LONGPRESSED);
    SIG_FWD(CLICKED, EVAS_CLICKABLE_INTERFACE_EVENT_CLICKED);
    SIG_FWD(CLICKED_DOUBLE, EVAS_CLICKABLE_INTERFACE_EVENT_CLICKED_DOUBLE);

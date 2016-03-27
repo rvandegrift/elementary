@@ -56,7 +56,7 @@ _on_image_preloaded(void *data,
                     void *event EINA_UNUSED)
 {
    Elm_Image_Data *sd = data;
-   sd->preloading = EINA_FALSE;
+   sd->preload_status = ELM_IMAGE_PRELOADED;
    if (sd->show) evas_object_show(obj);
    ELM_SAFE_FREE(sd->prev_img, evas_object_del);
 }
@@ -122,17 +122,13 @@ static void
 _elm_image_internal_sizing_eval(Evas_Object *obj, Elm_Image_Data *sd)
 {
    Evas_Coord x, y, w, h;
-   const char *type;
 
    if (!sd->img) return;
 
    w = sd->img_w;
    h = sd->img_h;
 
-   type = evas_object_type_get(sd->img);
-   if (!type) return;
-
-   if (!strcmp(type, "edje"))
+   if (eo_isa(sd->img, EDJE_OBJECT_CLASS))
      {
         x = sd->img_x;
         y = sd->img_y;
@@ -714,7 +710,7 @@ EOLIAN static void
 _elm_image_evas_object_smart_show(Eo *obj, Elm_Image_Data *sd)
 {
    sd->show = EINA_TRUE;
-   if (sd->preloading) return;
+   if (sd->preload_status == ELM_IMAGE_PRELOADING) return;
 
    eo_do_super(obj, MY_CLASS, evas_obj_smart_show());
 
@@ -897,20 +893,21 @@ _elm_image_file_set_do(Evas_Object *obj)
 EOLIAN static Eina_Bool
 _elm_image_memfile_set(Eo *obj, Elm_Image_Data *sd, const void *img, size_t size, const char *format, const char *key)
 {
-   EINA_SAFETY_ON_NULL_RETURN_VAL(img, EINA_FALSE);
-
    _elm_image_file_set_do(obj);
 
    evas_object_image_memfile_set
      (sd->img, (void *)img, size, (char *)format, (char *)key);
 
-   sd->preloading = EINA_TRUE;
+   sd->preload_status = ELM_IMAGE_PRELOADING;
    evas_object_image_preload(sd->img, EINA_FALSE);
 
    if (evas_object_image_load_error_get(sd->img) != EVAS_LOAD_ERROR_NONE)
      {
-        ERR("Things are going bad for some random " FMT_SIZE_T
-            " byte chunk of memory (%p)", size, sd->img);
+        if (img)
+          ERR("Things are going bad for some random " FMT_SIZE_T
+              " byte chunk of memory (%p)", size, sd->img);
+        else
+          ERR("NULL image data passed (%p)", sd->img);
         return EINA_FALSE;
      }
 
@@ -961,7 +958,6 @@ elm_image_file_set(Evas_Object *obj,
    Eina_Bool ret = EINA_FALSE;
 
    ELM_IMAGE_CHECK(obj) EINA_FALSE;
-   EINA_SAFETY_ON_NULL_RETURN_VAL(file, EINA_FALSE);
    eo_do(obj,
          ret = efl_file_set(file, group);
          elm_obj_image_sizing_eval());
@@ -982,7 +978,6 @@ elm_image_mmap_set(Evas_Object *obj,
    Eina_Bool ret = EINA_FALSE;
 
    ELM_IMAGE_CHECK(obj) EINA_FALSE;
-   EINA_SAFETY_ON_NULL_RETURN_VAL(file, EINA_FALSE);
    eo_do(obj, ret = efl_file_mmap_set(file, group));
    return ret;
 }
@@ -993,7 +988,6 @@ _elm_image_efl_file_mmap_set(Eo *obj, Elm_Image_Data *pd EINA_UNUSED,
 {
    Eina_Bool ret = EINA_FALSE;
 
-   EINA_SAFETY_ON_NULL_RETURN_VAL(file, EINA_FALSE);
    eo_do(obj,
          ret = elm_obj_image_mmap_set(file, key),
          elm_obj_image_sizing_eval());
@@ -1019,19 +1013,21 @@ _elm_image_smart_internal_file_set(Eo *obj, Elm_Image_Data *sd,
    else
      evas_object_image_file_set(sd->img, file, key);
 
-   evas_object_hide(sd->img);
-
-   if (evas_object_visible_get(obj))
-     {
-        sd->preloading = EINA_TRUE;
-        evas_object_image_preload(sd->img, EINA_FALSE);
-     }
-
    if (evas_object_image_load_error_get(sd->img) != EVAS_LOAD_ERROR_NONE)
      {
-        ERR("Things are going bad for '%s' (%p)", file, sd->img);
+        if (file)
+          ERR("Things are going bad for '%s' (%p)", file, sd->img);
+        else
+          ERR("NULL image file passed (%p)", sd->img);
         if (ret) *ret = EINA_FALSE;
         return;
+     }
+
+   if (sd->preload_status != ELM_IMAGE_PRELOAD_DISABLED)
+     {
+        evas_object_hide(sd->img);
+        sd->preload_status = ELM_IMAGE_PRELOADING;
+        evas_object_image_preload(sd->img, EINA_FALSE);
      }
 
    _elm_image_internal_sizing_eval(obj, sd);
@@ -1068,9 +1064,9 @@ _elm_image_smart_download_done(void *data, Elm_Url *url EINA_UNUSED, Eina_Binbuf
      }
    else
      {
-        if (evas_object_visible_get(obj))
+        if (sd->preload_status != ELM_IMAGE_PRELOAD_DISABLED)
           {
-             sd->preloading = EINA_TRUE;
+             sd->preload_status = ELM_IMAGE_PRELOADING;
              evas_object_image_preload(sd->img, EINA_FALSE);
           }
 
@@ -1269,15 +1265,11 @@ _elm_image_object_size_get(Eo *obj EINA_UNUSED, Elm_Image_Data *sd, int *w, int 
 {
    int tw, th;
    int cw = 0, ch = 0;
-   const char *type;
 
    if (w) *w = 0;
    if (h) *h = 0;
 
-   type = evas_object_type_get(sd->img);
-   if (!type) return;
-
-   if (!strcmp(type, "edje"))
+   if (eo_isa(sd->img, EDJE_OBJECT_CLASS))
      edje_object_size_min_get(sd->img, &tw, &th);
    else
      evas_object_image_size_get(sd->img, &tw, &th);
@@ -1340,18 +1332,23 @@ _elm_image_fill_outside_get(Eo *obj EINA_UNUSED, Elm_Image_Data *sd)
 EOLIAN static void
 _elm_image_preload_disabled_set(Eo *obj EINA_UNUSED, Elm_Image_Data *sd, Eina_Bool disable)
 {
-   if (sd->edje || !sd->preloading) return;
-
-   //FIXME: Need to keep the disabled status for next image loading.
-
-   evas_object_image_preload(sd->img, disable);
-   sd->preloading = !disable;
+   if (sd->edje || !sd->img) return;
 
    if (disable)
      {
-        if (sd->show && sd->img) evas_object_show(sd->img);
-        ELM_SAFE_FREE(sd->prev_img, evas_object_del);
+        if (sd->preload_status == ELM_IMAGE_PRELOADING)
+          {
+             evas_object_image_preload(sd->img, disable);
+             if (sd->show) evas_object_show(sd->img);
+             ELM_SAFE_FREE(sd->prev_img, evas_object_del);
+          }
+        sd->preload_status = ELM_IMAGE_PRELOAD_DISABLED;
      }
+   else if (sd->preload_status == ELM_IMAGE_PRELOAD_DISABLED)
+    {
+       sd->preload_status = ELM_IMAGE_PRELOADING;
+       evas_object_image_preload(sd->img, disable);
+    }
 }
 
 EAPI void
@@ -1391,15 +1388,11 @@ _elm_image_efl_image_load_size_get(Eo *obj EINA_UNUSED, Elm_Image_Data *sd, int 
 EOLIAN static void
 _elm_image_orient_set(Eo *obj, Elm_Image_Data *sd, Elm_Image_Orient orient)
 {
-   int iw, ih;
-
    if (sd->edje) return;
    if (sd->orient == orient) return;
 
    evas_object_image_orient_set(sd->img, orient);
    sd->orient = orient;
-   evas_object_image_size_get(sd->img, &iw, &ih);
-   evas_object_image_data_update_add(sd->img, 0, 0, iw, ih);
    _elm_image_internal_sizing_eval(obj, sd);
 }
 

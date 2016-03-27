@@ -44,11 +44,22 @@ static const Evas_Smart_Cb_Description _smart_callbacks[] = {
 
 static Eina_Bool _key_action_move(Evas_Object *obj, const char *params);
 static void _parent_geom_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED);
+static Eina_Bool
+_block_clicked_cb(void *data, Eo *obj EINA_UNUSED,
+                  const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
+static Eina_Bool
+_timeout_cb(void *data, Eo *obj EINA_UNUSED,
+            const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
 
 static const Elm_Action key_actions[] = {
    {"move", _key_action_move},
    {NULL, NULL}
 };
+
+EO_CALLBACKS_ARRAY_DEFINE(_notify_cb,
+   { ELM_NOTIFY_EVENT_BLOCK_CLICKED, _block_clicked_cb },
+   { ELM_NOTIFY_EVENT_TIMEOUT, _timeout_cb }
+);
 
 static void  _on_content_del(void *data, Evas *e, Evas_Object *obj, void *event_info);
 
@@ -199,10 +210,8 @@ _elm_popup_evas_object_smart_del(Eo *obj, Elm_Popup_Data *sd)
    evas_object_event_callback_del_full(sd->parent, EVAS_CALLBACK_RESIZE, _parent_geom_cb, obj);
    evas_object_event_callback_del_full(sd->parent, EVAS_CALLBACK_MOVE, _parent_geom_cb, obj);
 
-   eo_do(sd->notify, eo_event_callback_del(
-     ELM_NOTIFY_EVENT_BLOCK_CLICKED, _block_clicked_cb, obj));
-   eo_do(sd->notify, eo_event_callback_del(
-     ELM_NOTIFY_EVENT_TIMEOUT, _timeout_cb, obj));
+   eo_do(sd->notify,
+         eo_event_callback_array_del(_notify_cb(), obj));
    evas_object_event_callback_del
      (sd->content, EVAS_CALLBACK_DEL, _on_content_del);
    evas_object_event_callback_del(obj, EVAS_CALLBACK_SHOW, _on_show);
@@ -944,9 +953,6 @@ _title_text_set(Evas_Object *obj,
    if (title_visibility_old != title_visibility_current)
      _visuals_set(obj);
 
-   _scroller_size_calc(obj);
-   elm_layout_sizing_eval(obj);
-
    return EINA_TRUE;
 }
 
@@ -1014,9 +1020,6 @@ _content_text_set(Evas_Object *obj,
      }
 
 end:
-   _scroller_size_calc(obj);
-   elm_layout_sizing_eval(obj);
-
    return EINA_TRUE;
 }
 
@@ -1031,6 +1034,9 @@ _elm_popup_elm_layout_text_set(Eo *obj, Elm_Popup_Data *_pd, const char *part, c
      int_ret = _title_text_set(obj, label);
    else
      int_ret = elm_layout_text_set(_pd->main_layout, part, label);
+
+   _scroller_size_calc(obj);
+   elm_layout_sizing_eval(obj);
 
    return int_ret;
 }
@@ -1350,7 +1356,7 @@ _elm_popup_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_Popup_Data 
 }
 
 EOLIAN static Eina_Bool
-_elm_popup_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Popup_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_popup_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Popup_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Evas_Object *ao;
    Eina_List *items = NULL;
@@ -1373,7 +1379,7 @@ _elm_popup_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Popup_Data *sd, Elm_Fo
 
    items = eina_list_merge(items, base_items);
 
-   if (!elm_widget_focus_list_next_get(sd->main_layout, items, eina_list_data_get, dir, next))
+   if (!elm_widget_focus_list_next_get(sd->main_layout, items, eina_list_data_get, dir, next, next_item))
      *next = sd->main_layout;
    eina_list_free(items);
 
@@ -1387,7 +1393,7 @@ _elm_popup_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Popup_
 }
 
 EOLIAN static Eina_Bool
-_elm_popup_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Popup_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_popup_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Popup_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Evas_Object *ao;
    Eina_List *items = NULL;
@@ -1411,7 +1417,7 @@ _elm_popup_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Popup_Data *sd, c
    items = eina_list_merge(items, base_items);
 
    elm_widget_focus_list_direction_get
-     (sd->main_layout, base, items, eina_list_data_get, degree, direction, weight);
+     (sd->main_layout, base, items, eina_list_data_get, degree, direction, direction_item, weight);
    eina_list_free(items);
 
    return EINA_TRUE;
@@ -1422,6 +1428,7 @@ _key_action_move(Evas_Object *obj, const char *params)
 {
    const char *dir = params;
 
+   _elm_widget_focus_auto_show(obj);
    if (!strcmp(dir, "previous"))
      elm_widget_focus_cycle(obj, ELM_FOCUS_PREVIOUS);
    else if (!strcmp(dir, "next"))
@@ -1503,11 +1510,8 @@ _elm_popup_evas_object_smart_add(Eo *obj, Elm_Popup_Data *priv)
          _size_hints_changed_cb, priv->main_layout);
 
    priv->content_text_wrap_type = ELM_WRAP_MIXED;
-   eo_do(priv->notify, eo_event_callback_add
-         (ELM_NOTIFY_EVENT_BLOCK_CLICKED,_block_clicked_cb, obj));
-
-   eo_do(priv->notify, eo_event_callback_add
-         (ELM_NOTIFY_EVENT_TIMEOUT, _timeout_cb, obj));
+   eo_do(priv->notify,
+         eo_event_callback_array_add(_notify_cb(), obj));
 
    elm_widget_can_focus_set(obj, EINA_TRUE);
    elm_widget_can_focus_set(priv->main_layout, EINA_TRUE);

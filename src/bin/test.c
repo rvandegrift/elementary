@@ -5,6 +5,7 @@
 #include <string.h>
 #include <Elementary.h>
 #include "test.h"
+#include "test_explode.h"
 
 int _log_domain = -1;
 
@@ -122,6 +123,7 @@ void test_genlist_focus(void *data, Evas_Object *obj, void *event_info);
 void test_genlist_item_styles(void *data, Evas_Object *obj, void *event_info);
 void test_genlist_multi_select(void *data, Evas_Object *obj, void *event_info);
 void test_genlist_del(void *data, Evas_Object *obj, void *event_info);
+void test_genlist_filter(void *data, Evas_Object *obj, void *event_info);
 void test_gesture_layer(void *data, Evas_Object *obj, void *event_info);
 void test_gesture_layer2(void *data, Evas_Object *obj, void *event_info);
 void test_gesture_layer3(void *data, Evas_Object *obj, void *event_info);
@@ -132,6 +134,7 @@ void test_table4(void *data, Evas_Object *obj, void *event_info);
 void test_table5(void *data, Evas_Object *obj, void *event_info);
 void test_table6(void *data, Evas_Object *obj, void *event_info);
 void test_table7(void *data, Evas_Object *obj, void *event_info);
+void test_table8(void *data, Evas_Object *obj, void *event_info);
 void test_gengrid(void *data, Evas_Object *obj, void *event_info);
 void test_gengrid2(void *data, Evas_Object *obj, void *event_info);
 void test_gengrid3(void *data, Evas_Object *obj, void *event_info);
@@ -150,9 +153,11 @@ void test_separator(void *data, Evas_Object *obj, void *event_info);
 void test_scroller(void *data, Evas_Object *obj, void *event_info);
 void test_scroller2(void *data, Evas_Object *obj, void *event_info);
 void test_scroller3(void *data, Evas_Object *obj, void *event_info);
+void test_scroller4(void *data, Evas_Object *obj, void *event_info);
 void test_spinner(void *data, Evas_Object *obj, void *event_info);
 void test_index(void *data, Evas_Object *obj, void *event_info);
 void test_index2(void *data, Evas_Object *obj, void *event_info);
+void test_index3(void *data, Evas_Object *obj, void *event_info);
 void test_index_horizontal(void *data, Evas_Object *obj, void *event_info);
 void test_photocam(void *data, Evas_Object *obj, void *event_info);
 void test_photocam_remote(void *data, Evas_Object *obj, void *event_info);
@@ -182,6 +187,7 @@ void test_flip_page(void *data, Evas_Object *obj, void *event_info);
 void test_label(void *data, Evas_Object *obj, void *event_info);
 void test_label_slide(void *data, Evas_Object *obj, void *event_info);
 void test_label_wrap(void *data, Evas_Object *obj, void *event_info);
+void test_label_ellipsis(void *data, Evas_Object *obj, void *event_info);
 void test_conformant(void *data, Evas_Object *obj, void *event_info);
 void test_conformant2(void *data, Evas_Object *obj, void *event_info);
 void test_conformant_indicator(void *data, Evas_Object *obj, void *event_info);
@@ -424,6 +430,8 @@ my_win_main(const char *autorun, Eina_Bool test_win_only)
     *   ex) win = elm_win_util_standard_add("main", "Elementary Tests"); */
    win = elm_win_add(NULL, "main", ELM_WIN_BASIC);
    if (!win) exit(1);
+
+   explode_win_enable(win);
    /* Set the title of the window - This is in the titlebar. */
    elm_win_title_set(win, "Elementary Tests");
 
@@ -574,6 +582,7 @@ add_tests:
    ADD_TEST(NULL, "Containers", "Table 5", test_table5);
    ADD_TEST(NULL, "Containers", "Table 6", test_table6);
    ADD_TEST(NULL, "Containers", "Table 7", test_table7);
+   ADD_TEST(NULL, "Containers", "Table Padding", test_table8);
    ADD_TEST(NULL, "Containers", "Layout", test_layout);
    ADD_TEST(NULL, "Containers", "Layout 2", test_layout2);
    ADD_TEST(NULL, "Containers", "Grid", test_grid);
@@ -685,6 +694,7 @@ add_tests:
    ADD_TEST(NULL, "Lists - Genlist", "Genlist Item Styles", test_genlist_item_styles);
    ADD_TEST(NULL, "Lists - Genlist", "Genlist Multi Select", test_genlist_multi_select);
    ADD_TEST(NULL, "Lists - Genlist", "Genlist Del", test_genlist_del);
+   ADD_TEST(NULL, "Lists - Genlist", "Genlist Filter", test_genlist_filter);
 
    //------------------------------//
 
@@ -723,6 +733,7 @@ add_tests:
    //------------------------------//
    ADD_TEST(NULL, "Selectors", "Index", test_index);
    ADD_TEST(NULL, "Selectors", "Index 2", test_index2);
+   ADD_TEST(NULL, "Selectors", "Index 3", test_index3);
    ADD_TEST(NULL, "Selectors", "Index Horizontal", test_index_horizontal);
    ADD_TEST(NULL, "Selectors", "FileSelector", test_fileselector);
    ADD_TEST(NULL, "Selectors", "FileSelector Entry", test_fileselector_entry);
@@ -751,6 +762,7 @@ add_tests:
    ADD_TEST(NULL, "Scroller", "Scroller", test_scroller);
    ADD_TEST(NULL, "Scroller", "Scroller 2", test_scroller2);
    ADD_TEST(NULL, "Scroller", "Scroller 3", test_scroller3);
+   ADD_TEST(NULL, "Scroller", "Page Scroller", test_scroller4);
 
    //------------------------------//
    // FIXME: add frame test
@@ -792,6 +804,7 @@ add_tests:
    ADD_TEST(NULL, "Text", "Label", test_label);
    ADD_TEST(NULL, "Text", "Label Slide", test_label_slide);
    ADD_TEST(NULL, "Text", "Label Wrap", test_label_wrap);
+   ADD_TEST(NULL, "Text", "Label Ellipsis", test_label_ellipsis);
 
    //------------------------------//
    ADD_TEST(NULL, "Stored Surface Buffer", "Launcher", test_launcher);

@@ -21,7 +21,7 @@ _elm_table_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, void *_pd EINA_
 }
 
 EOLIAN static Eina_Bool
-_elm_table_elm_widget_focus_next(Eo *obj, void *_pd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_table_elm_widget_focus_next(Eo *obj, void *_pd EINA_UNUSED, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Eina_Bool int_ret;
 
@@ -48,7 +48,7 @@ _elm_table_elm_widget_focus_next(Eo *obj, void *_pd EINA_UNUSED, Elm_Focus_Direc
         if (!items) return EINA_FALSE;
      }
 
-   int_ret = elm_widget_focus_list_next_get(obj, items, list_data_get, dir, next);
+   int_ret = elm_widget_focus_list_next_get(obj, items, list_data_get, dir, next, next_item);
 
    if (list_free) list_free((Eina_List *)items);
 
@@ -62,7 +62,7 @@ _elm_table_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, void *_pd 
 }
 
 EOLIAN static Eina_Bool
-_elm_table_elm_widget_focus_direction(Eo *obj, void *_pd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_table_elm_widget_focus_direction(Eo *obj, void *_pd EINA_UNUSED, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Eina_Bool int_ret;
 
@@ -90,7 +90,7 @@ _elm_table_elm_widget_focus_direction(Eo *obj, void *_pd EINA_UNUSED, const Evas
      }
 
    int_ret = elm_widget_focus_list_direction_get
-       (obj, base, items, list_data_get, degree, direction, weight);
+       (obj, base, items, list_data_get, degree, direction, direction_item, weight);
 
    if (list_free)
      list_free((Eina_List *)items);

@@ -387,6 +387,13 @@ _elm_theme_parse(Elm_Theme *th, const char *theme)
                   eina_strbuf_append_char(buf, ':');
                   pe += 2;
                }
+             else if ((pe[0] == ':') && (pe[1] == '\\'))
+               {
+                  eina_strbuf_append_char(buf, *pe);
+                  pe++;
+                  eina_strbuf_append_char(buf, *pe);
+                  pe++;
+               }
              else if ((*pe == ':') || (!*pe))
                { // p -> pe == 'name:'
                   if (pe > p)
@@ -771,11 +778,10 @@ elm_theme_name_available_list_new(void)
         snprintf(buf, sizeof(buf), "%s/"ELEMENTARY_BASE_DIR"/themes/%s", home, file);
         if ((!ecore_file_is_dir(buf)) && (ecore_file_size(buf) > 0))
           {
-             s = strchr(file, '.');
-             if ((s) && (!strcasecmp(s, ".edj")))
+             if (eina_str_has_extension(file, "edj"))
                {
                   th = strdup(file);
-                  s = strchr(th, '.');
+                  s = strrchr(th, '.');
                   *s = 0;
                   list = eina_list_append(list, th);
                }
@@ -790,13 +796,12 @@ elm_theme_name_available_list_new(void)
         snprintf(buf, sizeof(buf), "%s/themes/%s", _elm_data_dir, file);
         if ((!ecore_file_is_dir(buf)) && (ecore_file_size(buf) > 0))
           {
-             s = strchr(file, '.');
-             if ((s) && (!strcasecmp(s, ".edj")))
+             if (eina_str_has_extension(file, "edj"))
                {
                   int dupp;
 
                   th = strdup(file);
-                  s = strchr(th, '.');
+                  s = strrchr(th, '.');
                   *s = 0;
                   dupp = 0;
                   EINA_LIST_FOREACH(list, l, s)

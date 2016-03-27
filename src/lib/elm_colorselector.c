@@ -754,7 +754,7 @@ _create_colorpicker(Evas_Object *obj)
         elm_object_style_set(spinner, style);
         evas_object_data_set(spinner, "parent", obj);
         eo_do(spinner, eo_event_callback_add
-              (ELM_COLORSELECTOR_EVENT_CHANGED, _spinner_changed_cb, sd));
+              (ELM_SPINNER_EVENT_CHANGED, _spinner_changed_cb, sd));
         elm_spinner_editable_set(spinner, EINA_TRUE);
         elm_spinner_interval_set(spinner, 0.1);
         elm_spinner_min_max_set(spinner, 0, 255);
@@ -1714,7 +1714,7 @@ _elm_colorselector_evas_object_smart_add(Eo *obj, Elm_Colorselector_Data *priv)
    priv->mode = ELM_COLORSELECTOR_BOTH;
    priv->focused = ELM_COLORSELECTOR_PALETTE;
    priv->sel_color_type = HUE;
-   priv->selected = priv->items;
+   priv->selected = NULL;
    priv->er = 255;
    priv->eg = 0;
    priv->eb = 0;
@@ -1829,11 +1829,12 @@ _key_action_move(Evas_Object *obj, const char *params)
    char colorbar_s[128];
    const char *dir = params;
 
+   _elm_widget_focus_auto_show(obj);
    if (!strcmp(dir, "left"))
      {
         if (sd->focused == ELM_COLORSELECTOR_PALETTE && sd->selected)
           cl = eina_list_prev(sd->selected);
-		  else if (sd->focused == ELM_COLORSELECTOR_COMPONENTS)
+        else if (sd->focused == ELM_COLORSELECTOR_COMPONENTS)
           _button_clicked_cb(sd->cb_data[sd->sel_color_type],
                              sd->cb_data[sd->sel_color_type]->lbt, NULL, NULL);
         else return EINA_FALSE;
@@ -1951,7 +1952,7 @@ _elm_colorselector_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_Col
 }
 
 EOLIAN static Eina_Bool
-_elm_colorselector_elm_widget_focus_next(Eo *obj, Elm_Colorselector_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_colorselector_elm_widget_focus_next(Eo *obj, Elm_Colorselector_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Eina_List *items = NULL;
    Eina_List *l;
@@ -1984,7 +1985,7 @@ _elm_colorselector_elm_widget_focus_next(Eo *obj, Elm_Colorselector_Data *sd, El
      }
 
    return elm_widget_focus_list_next_get
-            (obj, items, eina_list_data_get, dir, next);
+            (obj, items, eina_list_data_get, dir, next, next_item);
 }
 
 static void

@@ -939,6 +939,8 @@ _elm_scroll_drag_stop(Elm_Scrollable_Smart_Interface_Data *sid)
         if (sid->cb_func.page_change &&
             ((x != sid->current_page.x) || (y != sid->current_page.y)))
           sid->cb_func.page_change(sid->obj, NULL);
+        sid->current_page.x = x;
+        sid->current_page.y = y;
      }
 
    if (sid->cb_func.drag_stop)
@@ -948,6 +950,9 @@ _elm_scroll_drag_stop(Elm_Scrollable_Smart_Interface_Data *sid)
 static void
 _elm_scroll_anim_start(Elm_Scrollable_Smart_Interface_Data *sid)
 {
+   sid->current_page.x = _elm_scroll_page_x_get(sid, 0, EINA_FALSE);
+   sid->current_page.y = _elm_scroll_page_y_get(sid, 0, EINA_FALSE);
+
    if (sid->cb_func.animate_start)
      sid->cb_func.animate_start(sid->obj, NULL);
 }
@@ -963,6 +968,8 @@ _elm_scroll_anim_stop(Elm_Scrollable_Smart_Interface_Data *sid)
         y = _elm_scroll_page_y_get(sid, 0, EINA_FALSE);
         if ((x != sid->current_page.x) || (y != sid->current_page.y))
            sid->cb_func.page_change(sid->obj, NULL);
+        sid->current_page.x = x;
+        sid->current_page.y = y;
      }
 
    if (sid->cb_func.animate_stop)
@@ -2959,94 +2966,98 @@ _elm_scroll_hold_enterer(void *data)
 {
    Elm_Scrollable_Smart_Interface_Data *sid = data;
    Evas_Coord ox = 0, oy = 0, fx = 0, fy = 0;
+//   Evas_Coord fy2;
 
    sid->down.hold_enterer = NULL;
 
    fx = sid->down.hold_x;
    fy = sid->down.hold_y;
-
-   if (_elm_config->scroll_smooth_amount > 0.0)
+//   fy2 = fy;
+   if ((_elm_config->scroll_smooth_amount > 0.0) &&
+       (_elm_config->scroll_smooth_time_window > 0.0))
      {
         int i, count = 0;
         Evas_Coord basex = 0, basey = 0, x, y;
-        double dt, t, tdiff, tnow, twin;
+        double dt, tdiff, tnow, twin, ttot;
+        double xx, yy, tot;
         struct
           {
-             Evas_Coord x, y, dx, dy;
-             double t, dt;
-          } pos[60];
+             Evas_Coord x, y;
+             double t;
+          } pos[100];
 
         tdiff = sid->down.hist.est_timestamp_diff;
-        tnow = ecore_time_get() - tdiff;
-        t = tnow;
+        tnow = ecore_loop_time_get();
         twin = _elm_config->scroll_smooth_time_window;
         for (i = 0; i < 60; i++)
           {
-             if (sid->down.history[i].timestamp >
-                 sid->down.dragged_began_timestamp)
+             if ((sid->down.history[i].timestamp - tdiff) > tnow)
+               continue;
+             if ((sid->down.history[i].timestamp >
+                 sid->down.dragged_began_timestamp) || (count == 0))
                {
-                  // oldest point is sd->down.history[i]
-                  // newset is sd->down.history[0]
-                  dt = t - sid->down.history[i].timestamp;
-                  if (dt > twin)
-                    {
-                       i--;
-                       count--;
-                       break;
-                    }
                   x = sid->down.history[i].x;
                   y = sid->down.history[i].y;
                   _elm_scroll_down_coord_eval(sid, &x, &y);
-                  if (i == 0)
+                  if (count == 0)
                     {
                        basex = x;
                        basey = y;
                     }
-                  pos[i].x = x - basex;
-                  pos[i].y = y - basey;
-                  pos[i].t = sid->down.history[i].timestamp - sid->down.history[0].timestamp;
+                  dt = (tnow + tdiff) - sid->down.history[i].timestamp;
+                  if ((dt > twin) && (count > 0)) break;
+                  if ((dt > 0.0) && (count == 0))
+                    {
+                       pos[count].x = x - basex;
+                       pos[count].y = y - basey;
+                       pos[count].t = 0.0;
+                       count++;
+                    }
+                  pos[count].x = x - basex;
+                  pos[count].y = y - basey;
+                  pos[count].t = dt;
                   count++;
                }
           }
-        if (count >= 2)
+        if (count > 0)
           {
-             double dtsum = 0.0, tadd, maxdt;
-             double dxsum = 0.0, dysum = 0.0, xsum = 0.0, ysum = 0.0;
-             for (i = 0; i < (count - 1); i++)
+             xx = 0.0;
+             yy = 0.0;
+             tot = 0.0;
+             ttot = pos[count - 1].t;
+             for (i = 0; i < count; i++)
                {
-                  pos[i].dx = pos[i].x - pos[i + 1].x;
-                  pos[i].dy = pos[i].y - pos[i + 1].y;
-                  pos[i].dt = pos[i].t - pos[i + 1].t;
-                  dxsum += pos[i].dx;
-                  dysum += pos[i].dy;
-                  dtsum += pos[i].dt;
-                  xsum += pos[i].x;
-                  ysum += pos[i].y;
+                  double wt;
+
+                  if (ttot > 0.0)
+                    {
+                       if (i < (count - 1))
+                         wt = (ttot - pos[i].t) * (pos[i + 1].t - pos[i].t);
+                       else
+                         wt = 0.0;
+                    }
+                  else wt = 1.0;
+
+                  xx += ((double)(pos[i].x)) * wt;
+                  yy += ((double)(pos[i].y)) * wt;
+                  tot += wt;
                }
-             maxdt = pos[i].t;
-             dxsum /= (double)i;
-             dysum /= (double)i;
-             dtsum /= (double)i;
-             if (dtsum > 0)
+             if (tot > 0.0)
                {
-                  xsum /= (double)i;
-                  ysum /= (double)i;
-                  tadd = tnow - sid->down.history[0].timestamp + _elm_config->scroll_smooth_future_time;
-                  tadd = tadd - (maxdt / 2);
-#define WEIGHT(n, o, v) n = (((double)o * (1.0 - v)) + ((double)n * v))
-                  WEIGHT(tadd, sid->down.hist.tadd, _elm_config->scroll_smooth_history_weight);
-                  WEIGHT(dxsum, sid->down.hist.dxsum, _elm_config->scroll_smooth_history_weight);
-                  WEIGHT(dysum, sid->down.hist.dysum, _elm_config->scroll_smooth_history_weight);
-                  fx = basex + xsum + ((dxsum * tadd) / dtsum);
-                  fy = basey + ysum + ((dysum * tadd) / dtsum);
-                  sid->down.hist.tadd = tadd;
-                  sid->down.hist.dxsum = dxsum;
-                  sid->down.hist.dysum = dysum;
-                  WEIGHT(fx, sid->down.hold_x, _elm_config->scroll_smooth_amount);
-                  WEIGHT(fy, sid->down.hold_y, _elm_config->scroll_smooth_amount);
+                  xx = basex + (xx / tot);
+                  yy = basey + (yy / tot);
+                  fx =
+                    (_elm_config->scroll_smooth_amount * xx) +
+                    ((1.0 - _elm_config->scroll_smooth_amount) * fx);
+                  fy =
+                    (_elm_config->scroll_smooth_amount * yy) +
+                    ((1.0 - _elm_config->scroll_smooth_amount) * fy);
                }
           }
      }
+//   printf("%1.5f %i %i\n",
+//          ecore_loop_time_get() - sid->down.dragged_began_timestamp,
+//          fy, fy2);
 
    eo_do(sid->obj, elm_interface_scrollable_content_pos_get(&ox, &oy));
    if (sid->down.dir_x)
@@ -4391,9 +4402,6 @@ _elm_interface_scrollable_page_bring_in(Eo *obj, Elm_Scrollable_Smart_Interface_
    Evas_Coord x = 0;
    Evas_Coord y = 0;
 
-   sid->current_page.x = _elm_scroll_page_x_get(sid, 0, EINA_FALSE);
-   sid->current_page.y = _elm_scroll_page_y_get(sid, 0, EINA_FALSE);
-
    eo_do(sid->obj, elm_interface_scrollable_content_viewport_geometry_get
          (NULL, NULL, &w, &h));
    x = sid->pagesize_h * pagenumber_h;
@@ -4402,12 +4410,6 @@ _elm_interface_scrollable_page_bring_in(Eo *obj, Elm_Scrollable_Smart_Interface_
      {
         _elm_scroll_scroll_to_x(sid, _elm_config->bring_in_scroll_friction, x);
         _elm_scroll_scroll_to_y(sid, _elm_config->bring_in_scroll_friction, y);
-     }
-
-   if ((sid->current_page.x != x) || (sid->current_page.y != y))
-     {
-        if (sid->cb_func.page_change)
-          sid->cb_func.page_change(sid->obj, NULL);
      }
 }
 
@@ -4456,6 +4458,16 @@ _elm_interface_scrollable_loop_set(Eo *obj EINA_UNUSED, Elm_Scrollable_Smart_Int
 
    sid->loop_h = loop_h;
    sid->loop_v = loop_v;
+
+   if(sid->loop_h)
+     edje_object_signal_emit(sid->edje_obj, "elm,loop_x,set", "elm");
+   else
+     edje_object_signal_emit(sid->edje_obj, "elm,loop_x,unset", "elm");
+
+   if(sid->loop_v)
+     edje_object_signal_emit(sid->edje_obj, "elm,loop_y,set", "elm");
+   else
+     edje_object_signal_emit(sid->edje_obj, "elm,loop_y,unset", "elm");
 }
 
 EOLIAN static void

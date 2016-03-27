@@ -343,10 +343,10 @@ _desc_init(void)
    ELM_CONFIG_VAL(D, T, zoom_friction, T_DOUBLE);
    ELM_CONFIG_VAL(D, T, thumbscroll_bounce_enable, T_UCHAR);
    ELM_CONFIG_VAL(D, T, scroll_smooth_start_enable, T_UCHAR);
-   ELM_CONFIG_VAL(D, T, scroll_smooth_time_interval, T_DOUBLE);
+//   ELM_CONFIG_VAL(D, T, scroll_smooth_time_interval, T_DOUBLE); // not used anymore
    ELM_CONFIG_VAL(D, T, scroll_smooth_amount, T_DOUBLE);
-   ELM_CONFIG_VAL(D, T, scroll_smooth_history_weight, T_DOUBLE);
-   ELM_CONFIG_VAL(D, T, scroll_smooth_future_time, T_DOUBLE);
+//   ELM_CONFIG_VAL(D, T, scroll_smooth_history_weight, T_DOUBLE); // not used anymore
+//   ELM_CONFIG_VAL(D, T, scroll_smooth_future_time, T_DOUBLE); // not used anymore
    ELM_CONFIG_VAL(D, T, scroll_smooth_time_window, T_DOUBLE);
    ELM_CONFIG_VAL(D, T, scale, T_DOUBLE);
    ELM_CONFIG_VAL(D, T, bgpixmap, T_INT);
@@ -434,6 +434,7 @@ _desc_init(void)
    ELM_CONFIG_VAL(D, T, win_auto_focus_enable, T_UCHAR);
    ELM_CONFIG_VAL(D, T, win_auto_focus_animate, T_UCHAR);
    ELM_CONFIG_VAL(D, T, transition_duration_factor, T_DOUBLE);
+   ELM_CONFIG_VAL(D, T, naviframe_prev_btn_auto_pushed, T_UCHAR);
 #undef T
 #undef D
 #undef T_INT
@@ -1372,12 +1373,12 @@ _config_load(void)
    _elm_config->zoom_friction = 0.5;
    _elm_config->thumbscroll_border_friction = 0.5;
    _elm_config->thumbscroll_sensitivity_friction = 0.25; // magic number! just trial and error shows this makes it behave "nicer" and not run off at high speed all the time
-   _elm_config->scroll_smooth_start_enable = EINA_FALSE;
-   _elm_config->scroll_smooth_time_interval = 0.008;
+   _elm_config->scroll_smooth_start_enable = EINA_TRUE;
+//   _elm_config->scroll_smooth_time_interval = 0.008; // not used anymore
    _elm_config->scroll_smooth_amount = 1.0;
-   _elm_config->scroll_smooth_history_weight = 0.3;
-   _elm_config->scroll_smooth_future_time = 0.0;
-   _elm_config->scroll_smooth_time_window = 0.2;
+//   _elm_config->scroll_smooth_history_weight = 0.3; // not used anymore
+//   _elm_config->scroll_smooth_future_time = 0.0; // not used anymore
+   _elm_config->scroll_smooth_time_window = 0.15;
    _elm_config->scale = 1.0;
    _elm_config->bgpixmap = 0;
    _elm_config->compositing = 1;
@@ -1462,6 +1463,7 @@ _config_load(void)
    _elm_config->gl_msaa = 0;
    _elm_config->gl_stencil = 0;
    _elm_config->transition_duration_factor = 1.0;
+   _elm_config->naviframe_prev_btn_auto_pushed = EINA_TRUE;
 }
 
 static void
@@ -1522,7 +1524,7 @@ _config_flush_get(void)
    _elm_recache();
    _elm_clouseau_reload();
    _elm_config_key_binding_hash();
-   _elm_win_access(_elm_config->access_mode);
+   if (_elm_config) _elm_win_access(_elm_config->access_mode);
    ecore_event_add(ELM_EVENT_CONFIG_ALL_CHANGED, NULL, NULL, NULL);
 }
 
@@ -1752,6 +1754,42 @@ _config_update(void)
    _elm_config->transition_duration_factor = tcfg->transition_duration_factor;
    IFCFGEND
 
+   IFCFG(0x0004)
+   Elm_Config_Bindings_Widget *wb, *twb = NULL;
+   Eina_List *l;
+
+   EINA_LIST_FOREACH(tcfg->bindings, l, wb)
+     {
+        if (wb->name && !strcmp(wb->name, "Elm_Hoversel"))
+          {
+             twb = wb;
+             break;
+          }
+     }
+   if (twb)
+     {
+        EINA_LIST_FOREACH(_elm_config->bindings, l, wb)
+           {
+              if (wb->name && !strcmp(wb->name, "Elm_Hoversel"))
+                {
+                   // simply swap bindngs for Elm_Hoversel with system ones
+                   Eina_List *tmp = wb->key_bindings;
+                   wb->key_bindings = twb->key_bindings;
+                   twb->key_bindings = tmp;
+                   break;
+                }
+           }
+     }
+   IFCFGEND
+
+   IFCFG(0x0005)
+   _elm_config->naviframe_prev_btn_auto_pushed = tcfg->naviframe_prev_btn_auto_pushed;
+   IFCFGEND
+
+   IFCFG(0x0006)
+   _elm_config->cursor_engine_only = 0;
+   IFCFGEND
+
    /**
     * Fix user config for current ELM_CONFIG_EPOCH here.
     **/
@@ -1896,14 +1934,14 @@ _env_get(void)
      }
    s = getenv("ELM_SCROLL_SMOOTH_START_ENABLE");
    if (s) _elm_config->scroll_smooth_start_enable = !!atoi(s);
-   s = getenv("ELM_SCROLL_SMOOTH_TIME_INTERVAL");
-   if (s) _elm_config->scroll_smooth_time_interval = atof(s);
+//   s = getenv("ELM_SCROLL_SMOOTH_TIME_INTERVAL"); // not used anymore
+//   if (s) _elm_config->scroll_smooth_time_interval = atof(s); // not used anymore
    s = getenv("ELM_SCROLL_SMOOTH_AMOUNT");
    if (s) _elm_config->scroll_smooth_amount = _elm_atof(s);
-   s = getenv("ELM_SCROLL_SMOOTH_HISTORY_WEIGHT");
-   if (s) _elm_config->scroll_smooth_history_weight = _elm_atof(s);
-   s = getenv("ELM_SCROLL_SMOOTH_FUTURE_TIME");
-   if (s) _elm_config->scroll_smooth_future_time = _elm_atof(s);
+//   s = getenv("ELM_SCROLL_SMOOTH_HISTORY_WEIGHT"); // not used anymore
+//   if (s) _elm_config->scroll_smooth_history_weight = _elm_atof(s); // not used anymore
+//   s = getenv("ELM_SCROLL_SMOOTH_FUTURE_TIME"); // not used anymore
+//   if (s) _elm_config->scroll_smooth_future_time = _elm_atof(s); // not used anymore
    s = getenv("ELM_SCROLL_SMOOTH_TIME_WINDOW");
    if (s) _elm_config->scroll_smooth_time_window = _elm_atof(s);
    s = getenv("ELM_FOCUS_AUTOSCROLL_MODE");
@@ -2850,6 +2888,46 @@ elm_config_scroll_thumbscroll_sensitivity_friction_set(double friction)
    if (friction < 0.1) friction = 0.1;
    if (friction > 1.0) friction = 1.0;
    _elm_config->thumbscroll_sensitivity_friction = friction;
+}
+
+EAPI Eina_Bool
+elm_config_scroll_thumbscroll_smooth_start_get(void)
+{
+   return _elm_config->scroll_smooth_start_enable;
+}
+
+EAPI void
+elm_config_scroll_thumbscroll_smooth_start_set(Eina_Bool enable)
+{
+   _elm_config->scroll_smooth_start_enable = enable;
+}
+
+EAPI void
+elm_config_scroll_thumbscroll_smooth_amount_set(double amount)
+{
+   if (amount < 0.0) amount = 0.0;
+   if (amount > 1.0) amount = 1.0;
+   _elm_config->scroll_smooth_amount = amount;
+}
+
+EAPI double
+elm_config_scroll_thumbscroll_smooth_amount_get(void)
+{
+   return _elm_config->scroll_smooth_amount;
+}
+
+EAPI void
+elm_config_scroll_thumbscroll_smooth_time_window_set(double amount)
+{
+   if (amount < 0.0) amount = 0.0;
+   if (amount > 1.0) amount = 1.0;
+   _elm_config->scroll_smooth_time_window = amount;
+}
+
+EAPI double
+elm_config_scroll_thumbscroll_smooth_time_window_get(void)
+{
+   return _elm_config->scroll_smooth_time_window;
 }
 
 EAPI double

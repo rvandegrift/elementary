@@ -1,4 +1,4 @@
-EFL_VERSION([1], [15], [3], [release])
+EFL_VERSION([1], [16], [1], [release])
 AC_INIT([elementary], [efl_version], [enlightenment-devel@lists.sourceforge.net])
 
 AC_PREREQ(2.63)
@@ -31,10 +31,10 @@ EFL_INIT
 # C++ bindings
 
 AC_ARG_ENABLE([cxx-bindings],
-   [AS_HELP_STRING([--enable-cxx-bindings],
-       [enable C++11 bindings. @<:@default=disabled@:>@])],
+   [AS_HELP_STRING([--disable-cxx-bindings],
+       [Disable C++11 bindings. @<:@default=enabled@:>@])],
    [want_cxx11="${enableval}"],
-   [want_cxx11="no"])
+   [want_cxx11="yes"])
 
 # Tests
 
@@ -271,6 +271,7 @@ if test "x${HAVE_CXX11}" = "x1" -a "x${want_cxx11}" = "xyes"; then
         eina-cxx >= efl_version
         evas-cxx >= efl_version
         eio-cxx >= efl_version
+        edje-cxx >= efl_version
       ],
       [
         requirement_elm_pc="${requirement_elm_pc} \
@@ -279,10 +280,12 @@ if test "x${HAVE_CXX11}" = "x1" -a "x${want_cxx11}" = "xyes"; then
           eina-cxx >= efl_version \
           evas-cxx >= efl_version \
           eio-cxx >= efl_version \
+          edje-cxx >= efl_version \
         "
         have_cxx11="yes"
         LDFLAGS="${LDFLAGS} -fPIC -DPIC"
         CXXFLAGS="${CXXFLAGS} -fPIC -DPIC"
+        AC_CONFIG_FILES([src/lib/Elementary.hh])
       ],
       [have_cxx11="no"]
    )
@@ -337,19 +340,16 @@ dnl managed by evil
       have_dlopen="yes"
       requirement_elm_libs="-ldl ${requirement_elm_libs}"
       ;;
-   *solaris*)
-      have_dlopen="yes"
-      ;;
-   darwin*)
-      have_dlopen="yes"
-      ;;
-   *)
+   linux*)
       AC_CHECK_LIB([dl], [dlopen], [res=yes], [res=no])
       if test "x$res" = "xyes"; then
          AC_CHECK_LIB([dl], [dladdr], AC_DEFINE([HAVE_DLADDR], [1], [Define to 1 if you have the `dladdr' function.]))
          requirement_elm_libs="-ldl ${requirement_elm_libs}"
          have_dlopen="yes"
       fi
+      ;;
+   *)
+      have_dlopen="yes"
       ;;
 esac
 

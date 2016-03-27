@@ -526,7 +526,7 @@ _load_mesh(void *data, Evas_Object *obj, void *event_info)
         free(a);
         tmp = NULL;
         a = NULL;
-        /*Get extention of file*/
+        /*Get extension of file*/
         tmp = strdup(event_info);
         a = strrchr(tmp,'.');
         format = malloc(sizeof (char) * (strlen(a) - 1));
@@ -567,7 +567,6 @@ EAPI_MAIN
  int elm_main(int argc, char **argv)
 {
    Evas *evas = NULL;
-   const char *engine;
    Evas_Object *win = NULL, *bg = NULL, *image = NULL;
    Ecore_Animator *timer = NULL;
    Evas_Object *layout = NULL;
@@ -589,19 +588,10 @@ EAPI_MAIN
     at_port_h mf_at_port = NULL;
 #endif
 
-   if (!elm_init(0, 0)) return 1;
-
-   elm_config_engine_set("software_x11");
-   engine = elm_config_engine_get();
-
-   if (engine != NULL && strcmp("software_x11", engine))
-     {
-        fprintf(stdout, "There is elementary not support OpenGL engine");
-        exit(1);
-     }
+   if (!elm_init(argc, argv)) return 1;
 
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
-   win = elm_win_add(NULL, "3D Perfomance", ELM_WIN_BASIC);
+   win = elm_win_add(NULL, "3D Performance", ELM_WIN_BASIC);
    evas_object_resize(win, WIDTH, HEIGHT);
    elm_win_autodel_set(win, EINA_TRUE);
    evas_object_show(win);

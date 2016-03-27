@@ -75,6 +75,13 @@ my_entry_bt_6(void *data, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UN
    elm_entry_line_wrap_set(en, wr);
 }
 
+static void
+my_entry_bt_7(void *data, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
+{
+   Evas_Object *en = data;
+   elm_entry_editable_set(en, !elm_entry_editable_get(en));
+}
+
 void
 test_entry(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
 {
@@ -140,7 +147,6 @@ test_entry(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_inf
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -150,7 +156,6 @@ test_entry(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_inf
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -160,7 +165,6 @@ test_entry(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_inf
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -170,7 +174,6 @@ test_entry(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_inf
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -180,7 +183,6 @@ test_entry(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_inf
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -190,7 +192,15 @@ test_entry(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_inf
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
+   elm_object_focus_allow_set(bt, EINA_FALSE);
+   evas_object_show(bt);
+
+   bt = elm_button_add(win);
+   elm_object_text_set(bt, "Edit");
+   evas_object_smart_callback_add(bt, "clicked", my_entry_bt_7, en);
+   evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
+   elm_box_pack_end(bx2, bt);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -556,7 +566,6 @@ test_entry_scrolled(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -566,7 +575,6 @@ test_entry_scrolled(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -576,7 +584,6 @@ test_entry_scrolled(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -586,7 +593,6 @@ test_entry_scrolled(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -596,7 +602,6 @@ test_entry_scrolled(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -614,7 +619,6 @@ test_entry_scrolled(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx3, bt);
-   evas_object_propagate_events_set(bt, 0);
    elm_object_focus_allow_set(bt, 0);
    evas_object_show(bt);
 
@@ -624,7 +628,6 @@ test_entry_scrolled(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx3, bt);
-   evas_object_propagate_events_set(bt, 0);
    elm_object_focus_allow_set(bt, 0);
    evas_object_show(bt);
 
@@ -990,6 +993,17 @@ ent_bt_def_style_markup(void *data, Evas_Object *obj, void *event_info EINA_UNUS
       elm_object_text_set(en, default_style_text);
 }
 
+static void
+ent_bt_def_style_wrap(void *data, Evas_Object *obj, void *event_info EINA_UNUSED)
+{
+   Evas_Object *en = data;
+
+   if (elm_check_state_get(obj))
+     elm_entry_line_wrap_set(en, ELM_WRAP_NONE);
+   else
+     elm_entry_line_wrap_set(en, ELM_WRAP_WORD);
+}
+
 void
 test_entry_style_default(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
 {
@@ -1009,6 +1023,7 @@ test_entry_style_default(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, v
    evas_object_size_hint_align_set(en, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_object_text_set(en, default_style_text);
    elm_entry_editable_set(en, EINA_TRUE);
+   elm_entry_line_wrap_set(en, ELM_WRAP_WORD);
    elm_box_pack_end(bx, en);
    evas_object_show(en);
 
@@ -1037,6 +1052,12 @@ test_entry_style_default(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, v
    o = elm_check_add(win);
    elm_object_text_set(o, "scrollable");
    evas_object_smart_callback_add(o, "changed", ent_bt_def_style_scrollable, en);
+   elm_box_pack_end(vbx, o);
+   evas_object_show(o);
+
+   o = elm_check_add(win);
+   elm_object_text_set(o, "no wrap");
+   evas_object_smart_callback_add(o, "changed", ent_bt_def_style_wrap, en);
    elm_box_pack_end(vbx, o);
    evas_object_show(o);
 
@@ -1086,7 +1107,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1096,7 +1116,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1106,7 +1125,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1116,7 +1134,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1126,7 +1143,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1136,7 +1152,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1146,7 +1161,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1164,7 +1178,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1174,7 +1187,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1184,7 +1196,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1194,7 +1205,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1204,7 +1214,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1214,7 +1223,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1232,7 +1240,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1242,7 +1249,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1252,7 +1258,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1262,7 +1267,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1272,7 +1276,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1282,7 +1285,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1300,7 +1302,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1310,7 +1311,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1320,7 +1320,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1330,7 +1329,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1370,7 +1368,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1380,7 +1377,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1390,7 +1386,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1400,7 +1395,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1410,7 +1404,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1420,7 +1413,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1438,7 +1430,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1448,7 +1439,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1458,7 +1448,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1468,7 +1457,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1478,35 +1466,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
-   elm_object_focus_allow_set(bt, EINA_FALSE);
-   evas_object_show(bt);
-
-   bt = elm_button_add(win);
-   elm_object_text_set(bt, "End");
-   evas_object_smart_callback_add(bt, "clicked", my_ent_bt_end, en);
-   evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
-   elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
-   elm_object_focus_allow_set(bt, EINA_FALSE);
-   evas_object_show(bt);
-
-   elm_box_pack_end(bx, bx2);
-   evas_object_show(bx2);
-
-   bx2 = elm_box_add(win);
-   elm_box_horizontal_set(bx2, EINA_TRUE);
-   evas_object_size_hint_weight_set(bx2, EVAS_HINT_EXPAND, 0.0);
-   evas_object_size_hint_align_set(bx2, EVAS_HINT_FILL, EVAS_HINT_FILL);
-
-   bt = elm_button_add(win);
-   elm_object_text_set(bt, "LBe");
-   evas_object_smart_callback_add(bt, "clicked", my_ent_bt_lbe, en);
-   evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
-   elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1516,7 +1475,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1526,7 +1484,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1536,7 +1493,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1546,7 +1502,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1556,7 +1511,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1574,7 +1528,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1584,7 +1537,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1594,7 +1546,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1604,7 +1555,6 @@ test_entry3(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1723,7 +1673,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1733,7 +1682,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1743,7 +1691,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1753,7 +1700,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1763,7 +1709,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1773,7 +1718,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1791,7 +1735,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1801,7 +1744,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1811,7 +1753,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1821,7 +1762,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1831,7 +1771,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1841,7 +1780,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1859,7 +1797,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1869,7 +1806,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1879,7 +1815,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1889,7 +1824,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1899,7 +1833,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1909,7 +1842,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1927,7 +1859,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1937,7 +1868,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1947,7 +1877,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 
@@ -1957,7 +1886,6 @@ test_entry5(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, 0.0);
    elm_box_pack_end(bx2, bt);
-   evas_object_propagate_events_set(bt, EINA_FALSE);
    elm_object_focus_allow_set(bt, EINA_FALSE);
    evas_object_show(bt);
 

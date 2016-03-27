@@ -123,7 +123,7 @@ struct _Elm_Theme
  * the users config doesn't need to be wiped - simply new values need
  * to be put in
  */
-#define ELM_CONFIG_FILE_GENERATION 0x0003
+#define ELM_CONFIG_FILE_GENERATION 0x0006
 #define ELM_CONFIG_VERSION_EPOCH_OFFSET 16
 #define ELM_CONFIG_VERSION         ((ELM_CONFIG_EPOCH << ELM_CONFIG_VERSION_EPOCH_OFFSET) | \
                                     ELM_CONFIG_FILE_GENERATION)
@@ -204,10 +204,10 @@ struct _Elm_Config
    double        thumbscroll_border_friction;
    double        thumbscroll_sensitivity_friction;
    unsigned char scroll_smooth_start_enable;
-   double        scroll_smooth_time_interval;
+//   double        scroll_smooth_time_interval;; // not used anymore
    double        scroll_smooth_amount;
-   double        scroll_smooth_history_weight;
-   double        scroll_smooth_future_time;
+//   double        scroll_smooth_history_weight;; // not used anymore
+//   double        scroll_smooth_future_time;; // not used anymore
    double        scroll_smooth_time_window;
    double        scale;
    int           bgpixmap;
@@ -293,6 +293,7 @@ struct _Elm_Config
    unsigned char win_auto_focus_enable;
    unsigned char win_auto_focus_animate;
    double        transition_duration_factor;
+   unsigned char naviframe_prev_btn_auto_pushed;
    Eina_List    *bindings;
    Eina_Bool     atspi_mode;
    int           gl_depth;
@@ -401,6 +402,7 @@ void                 _elm_module_unload(Elm_Module *m);
 const void          *_elm_module_symbol_get(Elm_Module *m,
                                             const char *name);
 
+void                 _elm_widget_focus_auto_show(Evas_Object *obj);
 void                 _elm_widget_top_win_focused_set(Evas_Object *obj,
                                                      Eina_Bool top_win_focused);
 Eina_Bool            _elm_widget_top_win_focused_get(const Evas_Object *obj);

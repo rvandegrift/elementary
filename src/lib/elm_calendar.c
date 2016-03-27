@@ -414,7 +414,7 @@ _access_calendar_register(Evas_Object *obj)
 static void
 _populate(Evas_Object *obj)
 {
-   int maxdays, prev_month_maxdays, day, mon, yr, i;
+   int maxdays, adjusted_wday, prev_month_maxdays, day, mon, yr, i;
    Elm_Calendar_Mark *mark;
    char part[12], day_s[3];
    struct tm first_day;
@@ -580,8 +580,13 @@ _populate(Evas_Object *obj)
                day = mtime->tm_mday;
              else
                break;
+
+             adjusted_wday = (mtime->tm_wday - sd->first_week_day);
+             if (adjusted_wday < 0)
+               adjusted_wday = ELM_DAY_LAST + adjusted_wday;
+
              for (; day <= maxdays; day++)
-               if (mtime->tm_wday == _weekday_get(sd->first_day_it, day))
+               if (adjusted_wday == _weekday_get(sd->first_day_it, day))
                  _cit_mark(obj, day + sd->first_day_it - 1,
                            mark->mark_type);
              break;
@@ -609,7 +614,7 @@ _populate(Evas_Object *obj)
    sd->filling = EINA_FALSE;
 
    elm_layout_thaw(obj);
-   elm_layout_sizing_eval(obj);
+   edje_object_message_signal_process(elm_layout_edje_get(obj));
 }
 
 static void
@@ -933,6 +938,7 @@ _key_action_move(Evas_Object *obj, const char *params)
    ELM_CALENDAR_DATA_GET(obj, sd);
    const char *dir = params;
 
+   _elm_widget_focus_auto_show(obj);
    if (!strcmp(dir, "prior"))
      {
         if (_update_data(obj, EINA_TRUE, -1)) _populate(obj);
@@ -1155,7 +1161,7 @@ _elm_calendar_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Cal
 }
 
 EOLIAN static Eina_Bool
-_elm_calendar_elm_widget_focus_next(Eo *obj, Elm_Calendar_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_calendar_elm_widget_focus_next(Eo *obj, Elm_Calendar_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    int maxdays, day, i;
    Eina_List *items = NULL;
@@ -1188,7 +1194,7 @@ _elm_calendar_elm_widget_focus_next(Eo *obj, Elm_Calendar_Data *sd, Elm_Focus_Di
      }
 
    return elm_widget_focus_list_next_get
-            (obj, items, eina_list_data_get, dir, next);
+            (obj, items, eina_list_data_get, dir, next, next_item);
 }
 
 static void

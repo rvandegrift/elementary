@@ -15,14 +15,6 @@
 #define MY_CLASS_NAME "Elm_Notify"
 #define MY_CLASS_NAME_LEGACY "elm_notify"
 
-static const char SIG_BLOCK_CLICKED[] = "block,clicked";
-static const char SIG_TIMEOUT[] = "timeout";
-static const Evas_Smart_Cb_Description _smart_callbacks[] = {
-   {SIG_BLOCK_CLICKED, ""},
-   {SIG_TIMEOUT, ""},
-   {NULL, NULL}
-};
-
 static void
 _notify_theme_apply(Evas_Object *obj)
 {
@@ -255,7 +247,6 @@ _elm_notify_evas_object_smart_move(Eo *obj, Elm_Notify_Data *sd EINA_UNUSED, Eva
 static Eina_Bool
 _timer_cb(void *data)
 {
-   const char *hide_signal;
    Evas_Object *obj = data;
 
    ELM_NOTIFY_DATA_GET(obj, sd);
@@ -263,16 +254,7 @@ _timer_cb(void *data)
    sd->timer = NULL;
    if (!evas_object_visible_get(obj)) goto end;
 
-   hide_signal = edje_object_data_get(sd->notify, "hide_finished_signal");
-   if ((hide_signal) && (!strcmp(hide_signal, "on")))
-     {
-        sd->in_timeout = EINA_TRUE;
-        edje_object_signal_emit(sd->notify, "elm,state,hide", "elm");
-     }
-   else //for backport supporting: edc without emitting hide finished signal
-     {
-        evas_object_hide(obj);
-     }
+   evas_object_hide(obj);
    eo_do(obj, eo_event_callback_call(ELM_NOTIFY_EVENT_TIMEOUT, NULL));
 
 end:
@@ -310,7 +292,6 @@ _elm_notify_evas_object_smart_hide(Eo *obj, Elm_Notify_Data *sd)
 
    if (sd->had_hidden && !sd->in_timeout)
      return;
-   eo_do_super(obj, MY_CLASS, evas_obj_smart_hide());
 
    hide_signal = edje_object_data_get(sd->notify, "hide_finished_signal");
    if ((hide_signal) && (!strcmp(hide_signal, "on")))
@@ -320,6 +301,7 @@ _elm_notify_evas_object_smart_hide(Eo *obj, Elm_Notify_Data *sd)
      }
    else //for backport supporting: edc without emitting hide finished signal
      {
+        eo_do_super(obj, MY_CLASS, evas_obj_smart_hide());
         evas_object_hide(sd->notify);
         if (sd->allow_events) evas_object_hide(sd->block_events);
      }
@@ -352,7 +334,7 @@ _elm_notify_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_Notify_Dat
 }
 
 EOLIAN static Eina_Bool
-_elm_notify_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Notify_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_notify_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Notify_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Evas_Object *cur;
 
@@ -361,7 +343,7 @@ _elm_notify_elm_widget_focus_next(Eo *obj EINA_UNUSED, Elm_Notify_Data *sd, Elm_
    cur = sd->content;
 
    /* Try to cycle focus on content */
-   return elm_widget_focus_next_get(cur, dir, next);
+   return elm_widget_focus_next_get(cur, dir, next, next_item);
 }
 
 EOLIAN static Eina_Bool
@@ -371,7 +353,7 @@ _elm_notify_elm_widget_focus_direction_manager_is(Eo *obj EINA_UNUSED, Elm_Notif
 }
 
 EOLIAN static Eina_Bool
-_elm_notify_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Notify_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, double *weight)
+_elm_notify_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Notify_Data *sd, const Evas_Object *base, double degree, Evas_Object **direction, Elm_Object_Item **direction_item, double *weight)
 {
    Evas_Object *cur;
 
@@ -379,7 +361,7 @@ _elm_notify_elm_widget_focus_direction(Eo *obj EINA_UNUSED, Elm_Notify_Data *sd,
 
    cur = sd->content;
 
-   return elm_widget_focus_direction_get(cur, base, degree, direction, weight);
+   return elm_widget_focus_direction_get(cur, base, degree, direction, direction_item, weight);
 }
 
 EOLIAN static Eina_Bool
@@ -439,6 +421,7 @@ _hide_finished_cb(void *data,
    sd->had_hidden = EINA_TRUE;
    evas_object_hide(sd->notify);
    if (!sd->allow_events) evas_object_hide(sd->block_events);
+   eo_do_super(data, MY_CLASS, evas_obj_smart_hide());
 }
 
 EOLIAN static void

@@ -568,7 +568,7 @@ _item_new(Evas_Object *obj,
    edje_object_part_text_escaped_set(VIEW(it), "elm.text", label);
 
    it->icon = icon;
-   if (it->icon) elm_widget_sub_object_add(VIEW(it), it->icon);
+   if (it->icon) elm_widget_sub_object_add(obj, it->icon);
    evas_object_event_callback_add
      (VIEW(it), EVAS_CALLBACK_MOUSE_DOWN, _on_mouse_down, it);
    evas_object_event_callback_add
@@ -644,7 +644,7 @@ _elm_segment_control_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_S
 }
 
 EOLIAN static Eina_Bool
-_elm_segment_control_elm_widget_focus_next(Eo *obj, Elm_Segment_Control_Data *sd, Elm_Focus_Direction dir, Evas_Object **next)
+_elm_segment_control_elm_widget_focus_next(Eo *obj, Elm_Segment_Control_Data *sd, Elm_Focus_Direction dir, Evas_Object **next, Elm_Object_Item **next_item)
 {
    Eina_List *items = NULL;
    Eina_List *l;
@@ -659,7 +659,7 @@ _elm_segment_control_elm_widget_focus_next(Eo *obj, Elm_Segment_Control_Data *sd
      }
 
    return elm_widget_focus_list_next_get
-            (obj, items, eina_list_data_get, dir, next);
+            (obj, items, eina_list_data_get, dir, next, next_item);
 }
 
 EOLIAN static Eina_Bool
