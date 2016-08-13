@@ -333,16 +333,20 @@ _elm_image_async_open_done(void *data, Ecore_Thread *thread EINA_UNUSED)
 
    ELM_IMAGE_DATA_GET(obj, sd);
 
-   // no need to lock here, thread can't be running now
+   // async open thread can't be running now
+   // locking anyways to be sure (memory barrier), see CID 1343345
+   eina_spinlock_take(&sd->async.lck);
 
    sd->async.th = NULL;
    sd->async_failed = EINA_FALSE;
 
    if (sd->async.todo)
      {
+        eina_spinlock_release(&sd->async.lck);
         sd->async.th = ecore_thread_run(_elm_image_async_open_do,
                                         _elm_image_async_open_done,
                                         _elm_image_async_open_cancel, obj);
+
         return;
      }
 
@@ -354,12 +358,14 @@ _elm_image_async_open_done(void *data, Ecore_Thread *thread EINA_UNUSED)
         // done should be NULL only after cancel... not here
         ERR("Async open failed for an unknown reason.");
         sd->async_failed = EINA_TRUE;
+        eina_spinlock_release(&sd->async.lck);
         eo_do(obj, eo_event_callback_call(EFL_FILE_EVENT_ASYNC_ERROR, NULL));
         return;
      }
 
    DBG("Async open succeeded");
    sd->async.done = NULL;
+   eina_spinlock_release(&sd->async.lck);
    key = done->key;
    map = done->map;
    f = done->f_open;
@@ -795,7 +801,7 @@ _elm_image_elm_widget_event(Eo *obj, Elm_Image_Data *_pd EINA_UNUSED, Evas_Objec
    if (type != EVAS_CALLBACK_KEY_DOWN) return EINA_FALSE;
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return EINA_FALSE;
 
-   if (!_elm_config_key_binding_call(obj, ev, key_actions))
+   if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions))
      return EINA_FALSE;
 
    ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
@@ -816,7 +822,7 @@ _elm_image_sizing_eval(Eo *obj, Elm_Image_Data *sd)
    if (sd->no_scale)
      eo_do(obj, elm_obj_image_scale_set(1.0));
    else
-     eo_do(obj, efl_image_smooth_scale_set(elm_widget_scale_get(obj) * elm_config_scale_get()));
+     eo_do(obj, elm_obj_image_scale_set(elm_widget_scale_get(obj) * elm_config_scale_get()));
 
    ts = sd->scale;
    sd->scale = 1.0;
@@ -1112,6 +1118,13 @@ _elm_image_efl_file_file_set(Eo *obj, Elm_Image_Data *sd, const char *file, cons
 
    if (sd->remote) _elm_url_cancel(sd->remote);
    sd->remote = NULL;
+
+   if (sd->anim)
+     {
+        ELM_SAFE_FREE(sd->anim_timer, ecore_timer_del);
+        sd->play = EINA_FALSE;
+        sd->anim = EINA_FALSE;
+     }
 
    for (i = 0; i < sizeof (remote_uri) / sizeof (remote_uri[0]); ++i)
      if (file && !strncmp(remote_uri[i], file, strlen(remote_uri[i])))

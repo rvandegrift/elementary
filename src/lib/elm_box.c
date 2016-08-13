@@ -374,6 +374,14 @@ _transition_layout_animation_exec(Evas_Object *obj,
 }
 
 EOLIAN static void
+_elm_box_evas_object_smart_calculate(Eo *obj, Elm_Box_Data *_pd EINA_UNUSED)
+{
+   ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
+
+   elm_box_recalculate(obj);
+}
+
+EOLIAN static void
 _elm_box_evas_object_smart_add(Eo *obj, Elm_Box_Data *_pd EINA_UNUSED)
 {
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
@@ -439,6 +447,7 @@ elm_box_add(Evas_Object *parent)
 EOLIAN static Eo *
 _elm_box_eo_base_constructor(Eo *obj, Elm_Box_Data *_pd EINA_UNUSED)
 {
+   eo_do(obj, elm_interface_atspi_accessible_type_set(ELM_ATSPI_TYPE_SKIPPED));
    obj = eo_do_super_ret(obj, MY_CLASS, obj, eo_constructor());
    eo_do(obj,
          evas_obj_type_set(MY_CLASS_NAME_LEGACY),
@@ -543,12 +552,18 @@ _elm_box_unpack_all(Eo *obj, Elm_Box_Data *_pd EINA_UNUSED)
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
 
    ELM_BOX_CHECK(obj);
+   ELM_BOX_DATA_GET(obj, sd);
+   /* set this to block _sizing_eval() calls */
+   sd->delete_me = EINA_TRUE;
    bd = evas_object_smart_data_get(wd->resize_obj);
    EINA_LIST_FOREACH (bd->children, l, opt)
      elm_widget_sub_object_del(obj, opt->obj);
+   sd->delete_me = EINA_FALSE;
 
-   /* EINA_FALSE means to delete objects as well */
+   /* EINA_FALSE means do not delete objects */
    evas_object_box_remove_all(wd->resize_obj, EINA_FALSE);
+   /* update size hints */
+   _sizing_eval(obj);
 }
 
 EOLIAN static void

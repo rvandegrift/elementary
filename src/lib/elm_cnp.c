@@ -2309,7 +2309,7 @@ _x11_elm_selection_selection_has_owner(Evas_Object *obj EINA_UNUSED)
 
 #endif
 
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
 typedef struct _Wl_Cnp_Selection Wl_Cnp_Selection;
 
 struct _Wl_Cnp_Selection
@@ -2329,7 +2329,7 @@ struct _Wl_Cnp_Selection
    void *loss_data;
 
    Elm_Sel_Format format;
-   Ecore_Wl_Window *win;
+   Ecore_Wl2_Window *win;
    Elm_Xdnd_Action action;
 
    Eina_Bool active : 1;
@@ -2376,7 +2376,7 @@ static Dropable *_wl_dropable_find(unsigned int win);
 static void _wl_dropable_handle(Dropable *drop, Evas_Coord x, Evas_Coord y);
 static void _wl_dropable_all_clean(unsigned int win);
 static Eina_Bool _wl_drops_accept(const char *type);
-static unsigned int _wl_elm_widget_window_get(const Evas_Object *obj);
+static Ecore_Wl2_Window *_wl_elm_widget_window_get(const Evas_Object *obj);
 static Evas * _wl_evas_get_from_win(unsigned int win);
 
 static void
@@ -2397,7 +2397,7 @@ _wl_sel_obj_del2(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_
 static Eina_Bool
 _wl_elm_cnp_selection_set(Evas_Object *obj, Elm_Sel_Type selection, Elm_Sel_Format format, const void *selbuf, size_t buflen)
 {
-   Ecore_Wl_Window *win;
+   Ecore_Wl2_Window *win;
    Wl_Cnp_Selection *sel = &wl_cnp_selection;
 
    if ((!selbuf) && (format != ELM_SEL_FORMAT_IMAGE))
@@ -2408,7 +2408,7 @@ _wl_elm_cnp_selection_set(Evas_Object *obj, Elm_Sel_Type selection, Elm_Sel_Form
 
    _wl_elm_cnp_init();
 
-   win = elm_win_wl_window_get(obj);
+   win = _wl_elm_widget_window_get(obj);
 
    if ((sel->widget != obj) && sel->loss_cb)
      sel->loss_cb(sel->loss_data, selection);
@@ -2466,7 +2466,7 @@ _wl_elm_cnp_selection_set(Evas_Object *obj, Elm_Sel_Type selection, Elm_Sel_Form
 
              if (i < 0) return EINA_FALSE;
 
-             ecore_wl_dnd_selection_set(ecore_wl_input_get(), types);
+             ecore_wl2_dnd_selection_set(ecore_wl2_window_input_get(win), types);
 
              free(sel->selbuf);
              sel->buflen = buflen;
@@ -2484,12 +2484,12 @@ _wl_elm_cnp_selection_set(Evas_Object *obj, Elm_Sel_Type selection, Elm_Sel_Form
 static Eina_Bool
 _wl_elm_cnp_selection_get(const Evas_Object *obj, Elm_Sel_Type selection, Elm_Sel_Format format, Elm_Drop_Cb datacb, void *udata)
 {
-   Ecore_Wl_Window *win;
+   Ecore_Wl2_Window *win;
    Wl_Cnp_Selection *sel = &wl_cnp_selection;
 
    _wl_elm_cnp_init();
 
-   win = elm_win_wl_window_get(obj);
+   win = _wl_elm_widget_window_get(obj);
 
    if (sel->requestwidget)
      evas_object_event_callback_del_full(sel->requestwidget,
@@ -2529,7 +2529,7 @@ _wl_elm_cnp_selection_get(const Evas_Object *obj, Elm_Sel_Type selection, Elm_Se
 
         if (i < 0) return EINA_FALSE;
 
-        ecore_wl_dnd_selection_get(ecore_wl_input_get(), *types);
+        ecore_wl2_dnd_selection_get(ecore_wl2_window_input_get(win), *types);
      }
 
    return EINA_TRUE;
@@ -2574,7 +2574,7 @@ _wl_elm_cnp_selection_clear(Evas_Object *obj, Elm_Sel_Type selection EINA_UNUSED
    ELM_SAFE_FREE(sel->selbuf, free);
    sel->buflen = 0;
    /* sel->clear(); */
-   ecore_wl_dnd_selection_clear(ecore_wl_input_get());
+   ecore_wl2_dnd_selection_clear(ecore_wl2_window_input_get(_wl_elm_widget_window_get(obj)));
 
    return EINA_TRUE;
 }
@@ -2586,7 +2586,7 @@ _wl_selection_send(void *udata, int type EINA_UNUSED, void *event)
    int ret, len_remained;
    int len_written = 0;
    Wl_Cnp_Selection *sel = udata;
-   Ecore_Wl_Event_Data_Source_Send *ev = event;
+   Ecore_Wl2_Event_Data_Source_Send *ev = event;
 
    _wl_elm_cnp_init();
 
@@ -2610,7 +2610,7 @@ static Eina_Bool
 _wl_selection_receive(void *udata, int type EINA_UNUSED, void *event)
 {
    Wl_Cnp_Selection *sel = udata;
-   Ecore_Wl_Event_Selection_Data_Ready *ev = event;
+   Ecore_Wl2_Event_Selection_Data_Ready *ev = event;
 
    _wl_elm_cnp_init();
 
@@ -2658,7 +2658,9 @@ _wl_selection_receive(void *udata, int type EINA_UNUSED, void *event)
                   sdata.data = ev->data;
                   sdata.len = ev->len;
                   sdata.action = sel->action;
-                  sel->datacb(sel->udata, sel->widget, &sdata);
+                  sel->datacb(sel->udata,
+                              sel->requestwidget,
+                              &sdata);
                }
              else
                {
@@ -2701,9 +2703,9 @@ _wl_elm_cnp_init(void)
    if (_init_count > 0) return EINA_TRUE;
    _init_count++;
 
-   ecore_event_handler_add(ECORE_WL_EVENT_DATA_SOURCE_SEND,
+   ecore_event_handler_add(ECORE_WL2_EVENT_DATA_SOURCE_SEND,
                            _wl_selection_send, &wl_cnp_selection);
-   ecore_event_handler_add(ECORE_WL_EVENT_SELECTION_DATA_READY,
+   ecore_event_handler_add(ECORE_WL2_EVENT_SELECTION_DATA_READY,
                            _wl_selection_receive, &wl_cnp_selection);
 
    return EINA_TRUE;
@@ -2719,12 +2721,12 @@ _wl_elm_dnd_init(void)
 
    text_uri = eina_stringshare_add("text/uri-list");
 
-   ecore_event_handler_add(ECORE_WL_EVENT_DATA_SOURCE_SEND,
+   ecore_event_handler_add(ECORE_WL2_EVENT_DATA_SOURCE_SEND,
                            _wl_dnd_send, &wl_cnp_selection);
-   ecore_event_handler_add(ECORE_WL_EVENT_SELECTION_DATA_READY,
+   ecore_event_handler_add(ECORE_WL2_EVENT_SELECTION_DATA_READY,
                            _wl_dnd_receive, &wl_cnp_selection);
 
-   ecore_event_handler_add(ECORE_WL_EVENT_DND_END,
+   ecore_event_handler_add(ECORE_WL2_EVENT_DND_END,
                            _wl_dnd_end, &wl_cnp_selection);
 
    return EINA_TRUE;
@@ -2770,16 +2772,16 @@ _wl_elm_drop_target_add(Evas_Object *obj, Elm_Sel_Format format, Elm_Drag_State 
    if (first)
      {
         handler_enter =
-          ecore_event_handler_add(ECORE_WL_EVENT_DND_ENTER,
+          ecore_event_handler_add(ECORE_WL2_EVENT_DND_ENTER,
                                   _wl_dnd_enter, NULL);
         handler_leave =
-          ecore_event_handler_add(ECORE_WL_EVENT_DND_LEAVE,
+          ecore_event_handler_add(ECORE_WL2_EVENT_DND_LEAVE,
                                   _wl_dnd_leave, NULL);
         handler_pos =
-          ecore_event_handler_add(ECORE_WL_EVENT_DND_POSITION,
+          ecore_event_handler_add(ECORE_WL2_EVENT_DND_MOTION,
                                   _wl_dnd_position, NULL);
         handler_drop =
-          ecore_event_handler_add(ECORE_WL_EVENT_DND_DROP,
+          ecore_event_handler_add(ECORE_WL2_EVENT_DND_DROP,
                                   _wl_dnd_drop, NULL);
         _wl_elm_dnd_init();
      }
@@ -2839,7 +2841,7 @@ _wl_elm_drag_start(Evas_Object *obj, Elm_Sel_Format format, const char *data,
    int x, y, x2 = 0, y2 = 0, x3, y3, w = 0, h = 0;
    const char *types[CNP_N_ATOMS + 1];
    int i, nb_types = 0;
-   Ecore_Wl_Window *parent = NULL;
+   Ecore_Wl2_Window *parent = NULL, *win;
 
    _wl_elm_dnd_init();
 
@@ -2855,7 +2857,9 @@ _wl_elm_drag_start(Evas_Object *obj, Elm_Sel_Format format, const char *data,
           }
      }
    types[nb_types] = NULL;
-   ecore_wl_dnd_drag_types_set(ecore_wl_input_get(), types);
+
+   win = _wl_elm_widget_window_get(obj);
+   ecore_wl2_dnd_drag_types_set(ecore_wl2_window_input_get(win), types);
 
    /* set the drag data used when a drop occurs */
    free(wl_cnp_selection.selbuf);
@@ -2880,8 +2884,9 @@ _wl_elm_drag_start(Evas_Object *obj, Elm_Sel_Format format, const char *data,
    elm_win_borderless_set(dragwin, EINA_TRUE);
    elm_win_override_set(dragwin, EINA_TRUE);
 
-   ecore_wl_window_type_set(elm_win_wl_window_get(dragwin),
-                            ECORE_WL_WINDOW_TYPE_DND);
+   win = elm_win_wl_window_get(dragwin);
+
+   ecore_wl2_window_type_set(win, ECORE_WL2_WINDOW_TYPE_DND);
 
    if (createicon)
      {
@@ -2939,12 +2944,10 @@ _wl_elm_drag_start(Evas_Object *obj, Elm_Sel_Format format, const char *data,
         if (!(ee = ecore_evas_ecore_evas_get(evas)))
           return EINA_FALSE;
 
-        parent = ecore_evas_wayland_window_get(ee);
+        parent = ecore_evas_wayland2_window_get(ee);
      }
 
-   ecore_wl_dnd_drag_start(ecore_wl_input_get(), parent, 
-                           elm_win_wl_window_get(dragwin),
-                           x3, y3, w, h);
+   ecore_wl2_dnd_drag_start(ecore_wl2_window_input_get(win), parent, win);
 
    return EINA_TRUE;
 }
@@ -2959,7 +2962,7 @@ _wl_drag_source_del(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object 
 static Eina_Bool
 _wl_dnd_enter(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
 {
-   Ecore_Wl_Event_Dnd_Enter *ev;
+   Ecore_Wl2_Event_Dnd_Enter *ev;
    int i = 0;
 
    ev = event;
@@ -2997,7 +3000,7 @@ _wl_dnd_enter(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
 static Eina_Bool
 _wl_dnd_leave(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
 {
-   Ecore_Wl_Event_Dnd_Leave *ev;
+   Ecore_Wl2_Event_Dnd_Leave *ev;
    Dropable *drop;
    cnp_debug("In\n");
 
@@ -3014,16 +3017,16 @@ _wl_dnd_leave(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
 static Eina_Bool
 _wl_dnd_position(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
 {
-   Ecore_Wl_Event_Dnd_Position *ev;
+   Ecore_Wl2_Event_Dnd_Motion *ev;
    Dropable *drop;
    Eina_Bool will_accept = EINA_FALSE;
 
    ev = event;
 
-   cnp_debug("mouse pos %i %i\n", ev->position.x, ev->position.y);
+   cnp_debug("mouse pos %i %i\n", ev->x, ev->y);
 
-   dragwin_x_end = ev->position.x - _dragx;
-   dragwin_y_end = ev->position.y - _dragy;
+   dragwin_x_end = ev->x - _dragx;
+   dragwin_y_end = ev->y - _dragy;
 
    drop = _wl_dropable_find(ev->win);
 
@@ -3031,8 +3034,8 @@ _wl_dnd_position(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
      {
         Evas_Coord x = 0, y = 0;
 
-        x = ev->position.x;
-        y = ev->position.y;
+        x = ev->x;
+        y = ev->y;
         _dropable_coords_adjust(drop, &x, &y);
         Evas *evas = _wl_evas_get_from_win(ev->win);
 
@@ -3114,14 +3117,15 @@ _wl_dnd_position(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
 static Eina_Bool
 _wl_dnd_drop(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
 {
-   Ecore_Wl_Event_Dnd_Drop *ev;
+   Ecore_Wl2_Event_Dnd_Drop *ev;
+   Ecore_Wl2_Window *win;
    Dropable *drop;
    Eina_List *l;
 
    cnp_debug("In\n");
    ev = event;
-   savedtypes.x = ev->position.x;
-   savedtypes.y = ev->position.y;
+   savedtypes.x = ev->x;
+   savedtypes.y = ev->y;
 
    EINA_LIST_FOREACH(drops, l, drop)
      {
@@ -3133,12 +3137,16 @@ _wl_dnd_drop(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
                    EVAS_CALLBACK_DEL,
                    _wl_sel_obj_del2,
                    &wl_cnp_selection);
-             ecore_wl_dnd_drag_get(ecore_wl_input_get(), drop->last.type);
+
+             win = _wl_elm_widget_window_get(drop->obj);
+             ecore_wl2_dnd_drag_get(ecore_wl2_window_input_get(win),
+                                    drop->last.type);
              return ECORE_CALLBACK_PASS_ON;
           }
      }
 
-   ecore_wl_dnd_drag_end(ecore_wl_input_get());
+   win = ecore_wl2_display_window_find(_elm_wl_display, ev->win);
+   ecore_wl2_dnd_drag_end(ecore_wl2_window_input_get(win));
    return ECORE_CALLBACK_PASS_ON;
 }
 
@@ -3149,7 +3157,7 @@ _wl_dnd_send(void *data, int type EINA_UNUSED, void *event)
    int ret, len_remained;
    int len_written = 0;
    Wl_Cnp_Selection *sel;
-   Ecore_Wl_Event_Data_Source_Send *ev;
+   Ecore_Wl2_Event_Data_Source_Send *ev;
 
    cnp_debug("In\n");
    ev = event;
@@ -3175,7 +3183,7 @@ static Eina_Bool
 _wl_dnd_receive(void *data, int type EINA_UNUSED, void *event)
 {
    Wl_Cnp_Selection *sel;
-   Ecore_Wl_Event_Selection_Data_Ready *ev;
+   Ecore_Wl2_Event_Selection_Data_Ready *ev;
    cnp_debug("In\n");
 
    ev = event;
@@ -3198,12 +3206,14 @@ _wl_dnd_receive(void *data, int type EINA_UNUSED, void *event)
 }
 
 static Eina_Bool
-_wl_dnd_end(void *data EINA_UNUSED, int type EINA_UNUSED, void *event EINA_UNUSED)
+_wl_dnd_end(void *data EINA_UNUSED, int type EINA_UNUSED, void *event)
 {
-   cnp_debug("In\n");
-   /* Ecore_Wl_Event_Dnd_End *ev; */
+   Ecore_Wl2_Event_Dnd_End *ev;
+   Ecore_Wl2_Window *win;
 
-   /* ev = event; */
+   cnp_debug("In\n");
+
+   ev = event;
 
    if (dragdonecb) dragdonecb(dragdonedata, dragwidget);
 
@@ -3230,7 +3240,8 @@ _wl_dnd_end(void *data EINA_UNUSED, int type EINA_UNUSED, void *event EINA_UNUSE
    dragwidget = NULL;
    doaccept = EINA_FALSE;
 
-   ecore_wl_input_ungrab(ecore_wl_input_get());
+   win = ecore_wl2_display_window_find(_elm_wl_display, ev->win);
+   ecore_wl2_input_ungrab(ecore_wl2_window_input_get(win));
 
    return ECORE_CALLBACK_PASS_ON;
 }
@@ -3244,16 +3255,20 @@ _wl_dropable_match(Dropable_Cbs *cbs, Dropable *drop, Elm_Sel_Format fmt)
 static void
 _wl_dropable_data_handle(Wl_Cnp_Selection *sel, char *data, size_t size)
 {
-   cnp_debug("In\n");
    Dropable *drop;
    Elm_Selection_Data sdata;
+   Ecore_Wl2_Window *win;
    char *s;
+
+   cnp_debug("In\n");
 
    sdata.action = ELM_XDND_ACTION_COPY;
 
    sdata.len = size;
    sdata.x = savedtypes.x;
    sdata.y = savedtypes.y;
+
+   win = _wl_elm_widget_window_get(sel->requestwidget);
 
    eo_do(sel->requestwidget, drop = eo_key_data_get("__elm_dropable"));
    if (drop)
@@ -3268,7 +3283,7 @@ _wl_dropable_data_handle(Wl_Cnp_Selection *sel, char *data, size_t size)
                       savedtypes.textreq || _wl_dropable_match(cbs, drop, ELM_SEL_FORMAT_TEXT));
                   if (!s)
                     {
-                       ecore_wl_dnd_drag_end(ecore_wl_input_get());
+                       ecore_wl2_dnd_drag_end(ecore_wl2_window_input_get(win));
                        return;
                     }
 
@@ -3288,7 +3303,8 @@ _wl_dropable_data_handle(Wl_Cnp_Selection *sel, char *data, size_t size)
                }
           }
      }
-   ecore_wl_dnd_drag_end(ecore_wl_input_get());
+
+   ecore_wl2_dnd_drag_end(ecore_wl2_window_input_get(win));
    savedtypes.textreq = 0;
 }
 
@@ -3297,11 +3313,17 @@ _wl_dropable_find(unsigned int win)
 {
    Eina_List *l;
    Dropable *dropable;
+   Ecore_Wl2_Window *window;
 
    if (!drops) return NULL;
+
+   window = ecore_wl2_display_window_find(_elm_wl_display, win);
+   if (!window) return NULL;
+
    EINA_LIST_FOREACH(drops, l, dropable)
-     if (_wl_elm_widget_window_get(dropable->obj) == win)
+     if (_wl_elm_widget_window_get(dropable->obj) == window)
        return dropable;
+
    return NULL;
 }
 
@@ -3363,10 +3385,14 @@ _wl_dropable_all_clean(unsigned int win)
 {
    Eina_List *l;
    Dropable *dropable;
+   Ecore_Wl2_Window *window;
+
+   window = ecore_wl2_display_window_find(_elm_wl_display, win);
+   if (!window) return;
 
    EINA_LIST_FOREACH(drops, l, dropable)
      {
-        if (_wl_elm_widget_window_get(dropable->obj) == win)
+        if (_wl_elm_widget_window_get(dropable->obj) == window)
           {
              dropable->last.x = 0;
              dropable->last.y = 0;
@@ -3414,11 +3440,11 @@ _wl_drops_accept(const char *type)
    return will_accept;
 }
 
-static unsigned int
+static Ecore_Wl2_Window *
 _wl_elm_widget_window_get(const Evas_Object *obj)
 {
    Evas_Object *top;
-   Ecore_Wl_Window *win = NULL;
+   Ecore_Wl2_Window *win = NULL;
 
    if (elm_widget_is(obj))
      {
@@ -3434,27 +3460,276 @@ _wl_elm_widget_window_get(const Evas_Object *obj)
         const char *engine_name;
 
         if (!(evas = evas_object_evas_get(obj)))
-          return 0;
+          return NULL;
         if (!(ee = ecore_evas_ecore_evas_get(evas)))
-          return 0;
+          return NULL;
 
         engine_name = ecore_evas_engine_name_get(ee);
         if (!strcmp(engine_name, ELM_BUFFER))
           {
              ee = ecore_evas_buffer_ecore_evas_parent_get(ee);
-             if (!ee) return 0;
-             win = ecore_evas_wayland_window_get(ee);
+             if (!ee) return NULL;
+             win = ecore_evas_wayland2_window_get(ee);
           }
         else if (!strncmp(engine_name, "wayland", sizeof("wayland") - 1))
           {
              /* In case the engine is not a buffer, we want to check once. */
-             win = ecore_evas_wayland_window_get(ee);
-             if (!win) return 0;
+             win = ecore_evas_wayland2_window_get(ee);
+             if (!win) return NULL;
           }
      }
 
-   return ecore_wl_window_id_get(win);
+   return win;
 }
+
+#endif
+
+#ifdef HAVE_ELEMENTARY_COCOA
+
+typedef struct _Cocoa_Cnp_Selection Cocoa_Cnp_Selection;
+
+struct _Cocoa_Cnp_Selection
+{
+   Ecore_Cocoa_Window *win;
+   Evas_Object        *widget;
+   char               *selbuf;
+   int                 buflen;
+   Evas_Object        *requestwidget;
+   void               *udata;
+   Elm_Sel_Format      requestformat;
+   Elm_Drop_Cb         datacb;
+
+   Elm_Selection_Loss_Cb  loss_cb;
+   void                  *loss_data;
+   int                    pb_count;
+
+   Elm_Sel_Format     format;
+
+   Eina_Bool          active : 1;
+};
+
+static Cocoa_Cnp_Selection _cocoa_cnp_sel;
+
+static Ecore_Cocoa_Window *
+_cocoa_elm_widget_cocoa_window_get(const Evas_Object *obj)
+{
+   Evas_Object *top, *par;
+   Ecore_Cocoa_Window *win = NULL;
+
+   if (elm_widget_is(obj))
+     {
+         top = elm_widget_top_get(obj);
+         if (!top)
+           {
+              par = elm_widget_parent_widget_get(obj);
+              if (par) top = elm_widget_top_get(par);
+           }
+         if ((top) && (eo_isa(top, ELM_WIN_CLASS)))
+           win = elm_win_cocoa_window_get(top);
+     }
+   if (!win)
+     {
+        // FIXME
+        CRI("WIN has not been retrieved!!!");
+     }
+
+   return win;
+}
+
+static Ecore_Cocoa_Cnp_Type
+_elm_sel_format_to_ecore_cocoa_cnp_type(Elm_Sel_Format fmt)
+{
+   Ecore_Cocoa_Cnp_Type type = 0;
+
+   if ((fmt & ELM_SEL_FORMAT_TEXT) ||
+       (fmt & ELM_SEL_FORMAT_VCARD))
+     type |= ECORE_COCOA_CNP_TYPE_STRING;
+   if (fmt & ELM_SEL_FORMAT_MARKUP)
+     type |= ECORE_COCOA_CNP_TYPE_MARKUP;
+   if (fmt & ELM_SEL_FORMAT_HTML)
+     type |= ECORE_COCOA_CNP_TYPE_HTML;
+   if (fmt & ELM_SEL_FORMAT_IMAGE)
+     type |= ECORE_COCOA_CNP_TYPE_IMAGE;
+
+   return type;
+}
+
+static void
+_cocoa_sel_obj_del_req_cb(void        *data,
+                          Evas        *e       EINA_UNUSED,
+                          Evas_Object *obj,
+                          void        *ev_info EINA_UNUSED)
+{
+   Cocoa_Cnp_Selection *sel = data;
+   if (sel->requestwidget == obj) sel->requestwidget = NULL;
+}
+
+static void
+_cocoa_sel_obj_del_cb(void        *data,
+                      Evas        *e       EINA_UNUSED,
+                      Evas_Object *obj,
+                      void        *ev_info EINA_UNUSED)
+{
+   Cocoa_Cnp_Selection *sel = data;
+   if (sel->widget == obj)
+     {
+        sel->widget = NULL;
+        sel->loss_cb = NULL;
+        sel->loss_data = NULL;
+     }
+   if (dragwidget == obj) dragwidget = NULL;
+}
+
+static void
+_job_pb_cb(void *data)
+{
+   Cocoa_Cnp_Selection *sel = data;
+   Elm_Selection_Data ddata;
+   Ecore_Cocoa_Cnp_Type type, get_type;
+   void *pbdata;
+   int pbdata_len;
+
+   if (sel->datacb)
+     {
+        ddata.x = 0;
+        ddata.y = 0;
+
+        /* Pass to cocoa clipboard */
+        type = _elm_sel_format_to_ecore_cocoa_cnp_type(sel->requestformat);
+        pbdata = ecore_cocoa_selection_clipboard_get(&pbdata_len, type, &get_type);
+
+        ddata.format = ELM_SEL_FORMAT_NONE;
+        if (get_type & ECORE_COCOA_CNP_TYPE_STRING)
+          ddata.format |= ELM_SEL_FORMAT_TEXT;
+        if (get_type & ECORE_COCOA_CNP_TYPE_MARKUP)
+          ddata.format |= ELM_SEL_FORMAT_MARKUP;
+        if (get_type & ECORE_COCOA_CNP_TYPE_IMAGE)
+          ddata.format |= ELM_SEL_FORMAT_IMAGE;
+        if (get_type & ECORE_COCOA_CNP_TYPE_HTML)
+          ddata.format |= ELM_SEL_FORMAT_HTML;
+
+        ddata.data = pbdata;
+        ddata.len = pbdata_len;
+        ddata.action = ELM_XDND_ACTION_UNKNOWN;
+        sel->datacb(sel->udata, sel->requestwidget, &ddata);
+        free(pbdata);
+     }
+}
+
+static Eina_Bool
+_cocoa_elm_cnp_selection_set(Ecore_Cocoa_Window *win,
+                             Evas_Object        *obj,
+                             Elm_Sel_Type        selection,
+                             Elm_Sel_Format      format,
+                             const void         *selbuf,
+                             size_t              buflen)
+{
+   Cocoa_Cnp_Selection *sel = &_cocoa_cnp_sel;
+   Ecore_Cocoa_Cnp_Type type;
+   Eina_Bool ok = EINA_TRUE;
+
+   if ((!selbuf) && (format != ELM_SEL_FORMAT_IMAGE))
+     return elm_object_cnp_selection_clear(obj, selection);
+   if (buflen <= 0) return EINA_FALSE;
+
+   if (sel->loss_cb) sel->loss_cb(sel->loss_data, selection);
+   if (sel->widget)
+     evas_object_event_callback_del_full(sel->widget, EVAS_CALLBACK_DEL,
+                                         _cocoa_sel_obj_del_cb, sel);
+
+   sel->widget = obj;
+   sel->win = win;
+   sel->format = format;
+   sel->loss_cb = NULL;
+   sel->loss_data = NULL;
+
+   evas_object_event_callback_add(sel->widget, EVAS_CALLBACK_DEL,
+                                  _cocoa_sel_obj_del_cb, sel);
+   ELM_SAFE_FREE(sel->selbuf, free);
+   sel->buflen = 0;
+   if (selbuf)
+     {
+        sel->selbuf = malloc(buflen + 1);
+        if (EINA_UNLIKELY(!sel->selbuf))
+          {
+             CRI("Failed to allocate memory!");
+             elm_object_cnp_selection_clear(obj, selection);
+             return EINA_FALSE;
+          }
+        memcpy(sel->selbuf, selbuf, buflen);
+        sel->selbuf[buflen] = 0;
+        sel->buflen = buflen;
+        type = _elm_sel_format_to_ecore_cocoa_cnp_type(format);
+        ecore_cocoa_selection_clipboard_set(selbuf, buflen, type);
+     }
+
+   return ok;
+}
+
+static void
+_cocoa_elm_cnp_selection_loss_callback_set(Evas_Object           *obj       EINA_UNUSED,
+                                           Elm_Sel_Type           selection EINA_UNUSED,
+                                           Elm_Selection_Loss_Cb  func      EINA_UNUSED,
+                                           const void            *data      EINA_UNUSED)
+{
+   // Currently, we have no way to track changes in Cocoa pasteboard.
+   // Therefore, don't track this...
+   //sel->loss_cb = func;
+   //sel->loss_data = (void *)data;
+}
+
+static Eina_Bool
+_cocoa_elm_cnp_selection_clear(Evas_Object  *obj       EINA_UNUSED,
+                               Elm_Sel_Type  selection EINA_UNUSED)
+{
+   Cocoa_Cnp_Selection *sel = &_cocoa_cnp_sel;
+
+   if (sel->widget)
+     evas_object_event_callback_del_full(sel->widget, EVAS_CALLBACK_DEL,
+                                         _cocoa_sel_obj_del_cb, sel);
+   if (sel->requestwidget)
+     evas_object_event_callback_del_full(sel->requestwidget, EVAS_CALLBACK_DEL,
+                                         _cocoa_sel_obj_del_req_cb, sel);
+
+   sel->widget = NULL;
+   sel->requestwidget = NULL;
+   sel->loss_cb = NULL;
+   sel->loss_data = NULL;
+   ELM_SAFE_FREE(sel->selbuf, free);
+   sel->buflen = 0;
+   ecore_cocoa_selection_clipboard_clear();
+
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+_cocoa_elm_cnp_selection_get(const Evas_Object  *obj,
+                             Ecore_Cocoa_Window *win,
+                             Elm_Sel_Type        selection EINA_UNUSED,
+                             Elm_Sel_Format      format,
+                             Elm_Drop_Cb         datacb,
+                             void               *udata)
+{
+   Cocoa_Cnp_Selection *sel = &_cocoa_cnp_sel;
+
+   if (sel->requestwidget)
+     evas_object_event_callback_del_full(sel->requestwidget, EVAS_CALLBACK_DEL,
+                                         _cocoa_sel_obj_del_req_cb, sel);
+
+   sel->requestformat = format;
+   sel->requestwidget = (Evas_Object *)obj;
+   sel->win = win;
+   sel->datacb = datacb;
+   sel->udata = udata;
+
+   ecore_job_add(_job_pb_cb, sel);
+
+   evas_object_event_callback_add(sel->requestwidget, EVAS_CALLBACK_DEL,
+                                  _cocoa_sel_obj_del_req_cb, sel);
+
+   return EINA_TRUE;
+}
+
 
 #endif
 
@@ -3697,6 +3972,320 @@ _local_elm_selection_selection_has_owner(Evas_Object *obj EINA_UNUSED)
 }
 #endif
 
+// win32 specific stuff
+////////////////////////////////////////////////////////////////////////////
+#ifdef HAVE_ELEMENTARY_WIN32
+
+typedef struct _Win32_Cnp_Selection Win32_Cnp_Selection;
+
+struct _Win32_Cnp_Selection
+{
+   const char            *debug;
+   Evas_Object           *widget;
+   char                  *selbuf;
+   Evas_Object           *requestwidget;
+   void                  *udata;
+   Elm_Sel_Format         requestformat;
+   Elm_Drop_Cb            datacb;
+   Eina_Bool            (*set)(const Ecore_Win32_Window *window, const void *data, int size);
+   Eina_Bool            (*clear)(const Ecore_Win32_Window *window);
+   Eina_Bool            (*get)(const Ecore_Win32_Window *window , void **data, int *size);
+   Elm_Selection_Loss_Cb  loss_cb;
+   void                  *loss_data;
+
+   Elm_Sel_Format         format;
+   Ecore_Win32_Selection  ecore_sel;
+   Ecore_Win32_Window    *win;
+   Elm_Xdnd_Action        action;
+
+   Eina_Bool              active : 1;
+};
+
+#define ARRAYINIT(foo)  [foo] =
+
+static Win32_Cnp_Selection _win32_selections[ELM_SEL_TYPE_CLIPBOARD + 1] =
+{
+   ARRAYINIT(ELM_SEL_TYPE_PRIMARY)
+   {
+      .debug = "Primary",
+      .ecore_sel = ECORE_WIN32_SELECTION_PRIMARY,
+      .set = ecore_win32_clipboard_set,
+      .clear = ecore_win32_clipboard_clear,
+      .get = ecore_win32_clipboard_get,
+   },
+   ARRAYINIT(ELM_SEL_TYPE_SECONDARY)
+   {
+      .debug = "Secondary",
+      .ecore_sel = ECORE_WIN32_SELECTION_OTHER,
+   },
+   ARRAYINIT(ELM_SEL_TYPE_XDND)
+   {
+      .debug = "XDnD",
+      .ecore_sel = ECORE_WIN32_SELECTION_OTHER,
+   },
+   ARRAYINIT(ELM_SEL_TYPE_CLIPBOARD)
+   {
+      .debug = "Clipboard",
+      .ecore_sel = ECORE_WIN32_SELECTION_CLIPBOARD,
+      .set = ecore_win32_clipboard_set,
+      .clear = ecore_win32_clipboard_clear,
+      .get = ecore_win32_clipboard_get,
+   }
+};
+
+
+static void
+_win32_sel_obj_del(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
+{
+   Win32_Cnp_Selection *sel = data;
+   if (sel->widget == obj) sel->widget = NULL;
+   if (dragwidget == obj) dragwidget = NULL;
+}
+
+static void
+_win32_sel_obj_del2(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
+{
+   Win32_Cnp_Selection *sel = data;
+   if (sel->requestwidget == obj) sel->requestwidget = NULL;
+}
+
+static Eina_Bool
+_win32_elm_cnp_init(void)
+{
+   static int _init_count = 0;
+
+   if (_init_count > 0) return EINA_TRUE;
+   _init_count++;
+   return EINA_TRUE;
+}
+
+static Ecore_Win32_Window *
+_win32_elm_widget_window_get(const Evas_Object *obj)
+{
+   Evas_Object *top;
+   Ecore_Win32_Window *win = NULL;
+
+   if (elm_widget_is(obj))
+     {
+        top = elm_widget_top_get(obj);
+        if (!top)
+          {
+             Evas_Object *par;
+             par = elm_widget_parent_widget_get(obj);
+             if (par) top = elm_widget_top_get(par);
+          }
+        if (top && (eo_isa(top, ELM_WIN_CLASS)))
+          win = elm_win_win32_window_get(top);
+     }
+
+   if (!win)
+     {
+        Ecore_Evas *ee;
+        Evas *evas;
+        const char *engine_name;
+
+        evas = evas_object_evas_get(obj);
+        if (!evas) return NULL;
+
+        ee = ecore_evas_ecore_evas_get(evas);
+        if (!ee) return NULL;
+
+        engine_name = ecore_evas_engine_name_get(ee);
+        if (!strcmp(engine_name, ELM_BUFFER))
+          {
+             ee = ecore_evas_buffer_ecore_evas_parent_get(ee);
+             if (!ee) return NULL;
+             win = ecore_evas_win32_window_get(ee);
+          }
+        else
+          {
+             if ((strcmp(engine_name, ELM_SOFTWARE_WIN32) == 0) ||
+                 (strcmp(engine_name, ELM_SOFTWARE_DDRAW) == 0))
+               return ecore_evas_win32_window_get(ee);
+          }
+     }
+
+   return win;
+}
+
+static Eina_Bool
+_win32_elm_cnp_selection_set(Ecore_Win32_Window *win, Evas_Object *obj, Elm_Sel_Type selection, Elm_Sel_Format format, const void *selbuf, size_t buflen)
+{
+   Win32_Cnp_Selection *sel;
+
+   if (selection != ELM_SEL_TYPE_CLIPBOARD)
+     return EINA_FALSE;
+
+   _win32_elm_cnp_init();
+   if ((!selbuf) && (format != ELM_SEL_FORMAT_IMAGE))
+     return elm_object_cnp_selection_clear(obj, selection);
+
+   sel = _win32_selections + selection;
+   if (sel->widget != obj && sel->loss_cb) sel->loss_cb(sel->loss_data, selection);
+   if (sel->widget)
+     evas_object_event_callback_del_full(sel->widget, EVAS_CALLBACK_DEL,
+                                         _win32_sel_obj_del, sel);
+   sel->active = EINA_TRUE;
+   sel->widget = obj;
+   sel->win = win;
+   if (sel->set) sel->set(win, selbuf, buflen);
+   sel->format = format;
+   sel->loss_cb = NULL;
+   sel->loss_data = NULL;
+
+   evas_object_event_callback_add
+     (sel->widget, EVAS_CALLBACK_DEL, _win32_sel_obj_del, sel);
+
+   ELM_SAFE_FREE(sel->selbuf, free);
+   if (selbuf)
+     {
+        if (format == ELM_SEL_FORMAT_IMAGE)
+          {
+             // selbuf is actual image data, not text/string
+             sel->selbuf = malloc(buflen + 1);
+             if (!sel->selbuf)
+               {
+                  elm_object_cnp_selection_clear(obj, selection);
+                  return EINA_FALSE;
+               }
+             memcpy(sel->selbuf, selbuf, buflen);
+             sel->selbuf[buflen] = 0;
+          }
+        else
+          sel->selbuf = strdup((char*)selbuf);
+     }
+
+   return EINA_TRUE;
+}
+
+static void
+_win32_elm_cnp_selection_loss_callback_set(Evas_Object *obj EINA_UNUSED, Elm_Sel_Type selection, Elm_Selection_Loss_Cb func, const void *data)
+{
+   Win32_Cnp_Selection *sel;
+
+   if (selection != ELM_SEL_TYPE_CLIPBOARD)
+     return;
+
+   _win32_elm_cnp_init();
+   sel = _win32_selections + selection;
+   sel->loss_cb = func;
+   sel->loss_data = (void *)data;
+}
+
+static Eina_Bool
+_win32_elm_object_cnp_selection_clear(Ecore_Win32_Window *win, Evas_Object *obj, Elm_Sel_Type selection)
+{
+   Win32_Cnp_Selection *sel;
+
+   if (selection != ELM_SEL_TYPE_CLIPBOARD)
+     return EINA_FALSE;
+
+   _win32_elm_cnp_init();
+
+   sel = _win32_selections + selection;
+
+   /* No longer this selection: Consider it gone! */
+   if ((!sel->active) || (sel->widget != obj))
+     return EINA_TRUE;
+
+   if (sel->widget)
+     evas_object_event_callback_del_full(sel->widget, EVAS_CALLBACK_DEL,
+                                         _win32_sel_obj_del, sel);
+   if (sel->requestwidget)
+     evas_object_event_callback_del_full(sel->requestwidget, EVAS_CALLBACK_DEL,
+                                         _win32_sel_obj_del2, sel);
+   sel->widget = NULL;
+   sel->requestwidget = NULL;
+   sel->loss_cb = NULL;
+   sel->loss_data = NULL;
+
+   sel->active = EINA_FALSE;
+   ELM_SAFE_FREE(sel->selbuf, free);
+   /* sel->clear(win); */
+
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+_win32_elm_cnp_selection_get(Ecore_Win32_Window *win,
+                             const Evas_Object *obj,
+                             Elm_Sel_Type selection,
+                             Elm_Sel_Format format,
+                             Elm_Drop_Cb datacb,
+                             void *udata)
+{
+   Win32_Cnp_Selection *sel;
+   void *data;
+   int size;
+
+   if (selection != ELM_SEL_TYPE_CLIPBOARD)
+     return EINA_FALSE;
+
+   _win32_elm_cnp_init();
+
+   sel = _win32_selections + selection;
+
+   if (sel->requestwidget)
+     evas_object_event_callback_del_full(sel->requestwidget, EVAS_CALLBACK_DEL,
+                                         _win32_sel_obj_del2, sel);
+   sel->requestformat = format;
+   sel->requestwidget = (Evas_Object *)obj;
+   sel->win = win;
+   sel->get(win, &data, &size);
+   sel->datacb = datacb;
+   sel->udata = udata;
+
+   if (!data || (size <= 0))
+     goto cb_add;
+
+   if ((sel->format & ELM_SEL_FORMAT_MARKUP) ||
+       (sel->format & ELM_SEL_FORMAT_HTML))
+     {
+        char *str;
+
+        str = (char *)malloc(size + 1);
+        if (str)
+          {
+             memcpy(str, data, size);
+             str[size] = '\0';
+             data = _elm_util_mkup_to_text(str);
+             free(str);
+             if (data)
+               size = strlen(data);
+             else
+               size = 0;
+          }
+        else
+          {
+             free(data);
+             data = NULL;
+          }
+     }
+
+   if (sel->datacb && data && (size > 0))
+     {
+        Elm_Selection_Data sdata;
+
+        sdata.x = sdata.y = 0;
+        sdata.format = ELM_SEL_FORMAT_TEXT;
+        sdata.data = data;
+        sdata.len = size;
+        sdata.action = sel->action;
+        sel->datacb(sel->udata, sel->requestwidget, &sdata);
+     }
+
+   if (data)
+     free(data);
+
+ cb_add:
+   evas_object_event_callback_add
+     (sel->requestwidget, EVAS_CALLBACK_DEL, _win32_sel_obj_del2, sel);
+
+   return EINA_TRUE;
+}
+
+#endif /* HAVE_ELEMENTARY_WIN32 */
+
 // common internal funcs
 ////////////////////////////////////////////////////////////////////////////
 static Eina_Bool
@@ -3833,9 +4422,21 @@ elm_cnp_selection_set(Evas_Object *obj, Elm_Sel_Type selection,
    if (xwin)
      return _x11_elm_cnp_selection_set(xwin, obj, selection, format, selbuf, buflen);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    if (_wl_elm_widget_window_get(obj))
       return _wl_elm_cnp_selection_set(obj, selection, format, selbuf, buflen);
+#endif
+#ifdef HAVE_ELEMENTARY_COCOA
+   Ecore_Cocoa_Window *win = _cocoa_elm_widget_cocoa_window_get(obj);
+   if (win)
+     return _cocoa_elm_cnp_selection_set(win, obj, selection, format, selbuf, buflen);
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+   Ecore_Win32_Window *win;
+
+   win = _win32_elm_widget_window_get(obj);
+   if (win)
+     return _win32_elm_cnp_selection_set(win, obj, selection, format, selbuf, buflen);
 #endif
    return _local_elm_cnp_selection_set(obj, selection, format, selbuf, buflen);
 }
@@ -3851,9 +4452,17 @@ elm_cnp_selection_loss_callback_set(Evas_Object *obj, Elm_Sel_Type selection,
    if (_x11_elm_widget_xwin_get(obj))
      _x11_elm_cnp_selection_loss_callback_set(obj, selection, func, data);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    if (_wl_elm_widget_window_get(obj))
      _wl_elm_cnp_selection_loss_callback_set(obj, selection, func, data);
+#endif
+#ifdef HAVE_ELEMENTARY_COCOA
+   if (_cocoa_elm_widget_cocoa_window_get(obj))
+     _cocoa_elm_cnp_selection_loss_callback_set(obj, selection, func, data);
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+   if (_win32_elm_widget_window_get(obj))
+     _win32_elm_cnp_selection_loss_callback_set(obj, selection, func, data);
 #endif
    _local_elm_cnp_selection_loss_callback_set(obj, selection, func, data);
 }
@@ -3867,9 +4476,20 @@ elm_object_cnp_selection_clear(Evas_Object *obj, Elm_Sel_Type selection)
    if (_x11_elm_widget_xwin_get(obj))
      return _x11_elm_object_cnp_selection_clear(obj, selection);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    if (_wl_elm_widget_window_get(obj))
       return _wl_elm_cnp_selection_clear(obj, selection);
+#endif
+#ifdef HAVE_ELEMENTARY_COCOA
+   if (_cocoa_elm_widget_cocoa_window_get(obj))
+     return _cocoa_elm_cnp_selection_clear(obj, selection);
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+   Ecore_Win32_Window *win;
+
+   win = _win32_elm_widget_window_get(obj);
+   if (win)
+     return _win32_elm_object_cnp_selection_clear(win, obj, selection);
 #endif
    return _local_elm_object_cnp_selection_clear(obj, selection);
 }
@@ -3885,9 +4505,21 @@ elm_cnp_selection_get(const Evas_Object *obj, Elm_Sel_Type selection,
    if (xwin)
      return _x11_elm_cnp_selection_get(xwin, obj, selection, format, datacb, udata);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    if (_wl_elm_widget_window_get(obj))
       return _wl_elm_cnp_selection_get(obj, selection, format, datacb, udata);
+#endif
+#ifdef HAVE_ELEMENTARY_COCOA
+   Ecore_Cocoa_Window *win = _cocoa_elm_widget_cocoa_window_get(obj);
+   if (win)
+     return _cocoa_elm_cnp_selection_get(obj, win, selection, format, datacb, udata);
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+   Ecore_Win32_Window *win;
+
+   win = _win32_elm_widget_window_get(obj);
+   if (win)
+     return _win32_elm_cnp_selection_get(win, obj, selection, format, datacb, udata);
 #endif
    return _local_elm_cnp_selection_get(obj, selection, format, datacb, udata);
 }
@@ -3911,7 +4543,7 @@ elm_drop_target_add(Evas_Object *obj, Elm_Sel_Format format,
                                      leavecb, leavedata, poscb, posdata,
                                      dropcb, dropdata);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    if (_wl_elm_widget_window_get(obj))
      return _wl_elm_drop_target_add(obj, format, entercb, enterdata,
                                     leavecb, leavedata, poscb, posdata,
@@ -3935,7 +4567,7 @@ elm_drop_target_del(Evas_Object *obj, Elm_Sel_Format format,
      return _x11_elm_drop_target_del(obj, format, entercb, enterdata,
            leavecb, leavedata, poscb, posdata, dropcb, dropdata);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    if (_wl_elm_widget_window_get(obj))
      return _wl_elm_drop_target_del(obj, format, entercb, enterdata,
            leavecb, leavedata, poscb, posdata, dropcb, dropdata);
@@ -3968,7 +4600,7 @@ elm_drag_start(Evas_Object *obj, Elm_Sel_Format format, const char *data,
                                 acceptcb, acceptdata,
                                 dragdone, donecbdata);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    if (_wl_elm_widget_window_get(obj))
      return _wl_elm_drag_start(obj, format, data, action,
                                createicon, createdata,
@@ -3991,7 +4623,7 @@ elm_drag_action_set(Evas_Object *obj, Elm_Xdnd_Action action)
    if (_x11_elm_widget_xwin_get(obj))
      return _x11_elm_drag_action_set(obj, action);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    if (_wl_elm_widget_window_get(obj))
      return _wl_elm_drag_action_set(obj, action);
 #endif
@@ -4006,9 +4638,12 @@ elm_selection_selection_has_owner(Evas_Object *obj)
    if (_x11_elm_widget_xwin_get(obj))
      return _x11_elm_selection_selection_has_owner(obj);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
-   if (_wl_elm_widget_window_get(obj))
-     return ecore_wl_dnd_selection_owner_has(ecore_wl_input_get());
+#ifdef HAVE_ELEMENTARY_WL2
+   Ecore_Wl2_Window *win;
+
+   win = _wl_elm_widget_window_get(obj);
+   if (win)
+     return ecore_wl2_dnd_selection_owner_has(ecore_wl2_window_input_get(win));
 #endif
    return _local_elm_selection_selection_has_owner(obj);
 }
@@ -4492,9 +5127,12 @@ elm_drag_cancel(Evas_Object *obj)
         goto end;
      }
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
-   if (_wl_elm_widget_window_get(obj))
-      ecore_wl_dnd_drag_end(ecore_wl_input_get());
+#ifdef HAVE_ELEMENTARY_WL2
+   Ecore_Wl2_Window *win;
+
+   win = _wl_elm_widget_window_get(obj);
+   if (win)
+     ecore_wl2_dnd_drag_end(ecore_wl2_window_input_get(win));
 #endif
 
 end:
@@ -4506,3 +5144,4 @@ end:
    doaccept = EINA_FALSE;
    return EINA_TRUE;
 }
+

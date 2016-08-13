@@ -26,7 +26,6 @@ _notify_theme_apply(Evas_Object *obj)
 
    ax = sd->horizontal_align;
    ay = sd->vertical_align;
-   if ((elm_widget_mirrored_get(obj)) && (ax != ELM_NOTIFY_ALIGN_FILL)) ax = 1.0 - ax;
 
    if (ay == 0.0)
      {
@@ -382,7 +381,6 @@ _elm_notify_elm_container_content_set(Eo *obj, Elm_Notify_Data *sd, const char *
         edje_object_part_swallow(sd->notify, "elm.swallow.content", content);
      }
 
-   _sizing_eval(obj);
    _calc(obj);
 
    return EINA_TRUE;
@@ -422,6 +420,7 @@ _hide_finished_cb(void *data,
    evas_object_hide(sd->notify);
    if (!sd->allow_events) evas_object_hide(sd->block_events);
    eo_do_super(data, MY_CLASS, evas_obj_smart_hide());
+   eo_do(data, eo_event_callback_call(ELM_NOTIFY_EVENT_DISMISSED, NULL));
 }
 
 EOLIAN static void
@@ -515,7 +514,6 @@ _elm_notify_elm_widget_parent_set(Eo *obj, Elm_Notify_Data *sd, Evas_Object *par
           (parent, EVAS_CALLBACK_DEL, _parent_del_cb, obj);
         evas_object_event_callback_add
           (parent, EVAS_CALLBACK_HIDE, _parent_hide_cb, obj);
-        _sizing_eval(obj);
      }
 
    _calc(obj);
@@ -665,6 +663,14 @@ _elm_notify_align_set(Eo *obj, Elm_Notify_Data *sd, double horizontal, double ve
    _notify_theme_apply(obj);
    _calc(obj);
 }
+
+EOLIAN static void
+_elm_notify_dismiss(Eo *obj EINA_UNUSED, Elm_Notify_Data *sd)
+{
+   elm_layout_signal_emit(sd->block_events, "elm,state,hide", "elm");
+   edje_object_signal_emit(sd->notify, "elm,state,hide", "elm");
+}
+
 
 EOLIAN static void
 _elm_notify_align_get(Eo *obj EINA_UNUSED, Elm_Notify_Data *sd, double *horizontal, double *vertical)

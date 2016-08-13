@@ -202,7 +202,8 @@ _update_list(Elm_Segment_Control_Data *sd)
         else
           edje_object_signal_emit(VIEW(it), "elm,state,segment,normal", "elm");
 
-        if (elm_widget_disabled_get(sd->obj))
+        if (elm_widget_disabled_get(sd->obj)
+            || elm_object_item_disabled_get(eo_it))
           edje_object_signal_emit(VIEW(it), "elm,state,disabled", "elm");
         else
           edje_object_signal_emit(VIEW(it), "elm,state,enabled", "elm");
@@ -308,6 +309,8 @@ _segment_on(Elm_Segment_Control_Item_Data *it)
    ELM_SEGMENT_CONTROL_DATA_GET(WIDGET(it), sd);
 
    if (it == sd->selected_item) return;
+
+   if (elm_object_item_disabled_get(EO_OBJ(it))) return;
 
    if (sd->selected_item) _segment_off(sd->selected_item);
 
@@ -605,8 +608,9 @@ _elm_segment_control_item_eo_base_constructor(Eo *obj, Elm_Segment_Control_Item_
 }
 
 EOLIAN static void
-_elm_segment_control_evas_object_smart_add(Eo *obj, Elm_Segment_Control_Data *_pd EINA_UNUSED)
+_elm_segment_control_evas_object_smart_add(Eo *obj, Elm_Segment_Control_Data *sd)
 {
+   sd->obj = obj;
    eo_do_super(obj, MY_CLASS, evas_obj_smart_add());
    elm_widget_sub_object_parent_add(obj);
 
@@ -698,10 +702,9 @@ elm_segment_control_add(Evas_Object *parent)
 }
 
 EOLIAN static Eo *
-_elm_segment_control_eo_base_constructor(Eo *obj, Elm_Segment_Control_Data *sd)
+_elm_segment_control_eo_base_constructor(Eo *obj, Elm_Segment_Control_Data *sd EINA_UNUSED)
 {
    obj = eo_do_super_ret(obj, MY_CLASS, obj, eo_constructor());
-   sd->obj = obj;
 
    eo_do(obj,
          evas_obj_type_set(MY_CLASS_NAME_LEGACY),

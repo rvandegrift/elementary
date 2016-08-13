@@ -181,8 +181,6 @@ class Elm.Glview (Elm.Widget)
       Elm.Widget.on_focus;
    }
    events {
-      language,changed;
-      access,changed;
    }
    constructors {
       .version_constructor;

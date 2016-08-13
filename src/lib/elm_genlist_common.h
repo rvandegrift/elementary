@@ -27,6 +27,11 @@ typedef Elm_Gen_Item_State_Get_Cb Elm_Genlist_Item_State_Get_Cb;
 typedef Elm_Gen_Item_Del_Cb Elm_Genlist_Item_Del_Cb;
 
 /**
+ * @see Elm_Gen_Item_Filter_Get_Cb
+ */
+typedef Elm_Gen_Item_Filter_Get_Cb Elm_Genlist_Item_Filter_Get_Cb;
+
+/**
  * Create a new genlist item class in a given genlist widget.
  *
  * @return New allocated genlist item class.
@@ -40,7 +45,7 @@ typedef Elm_Gen_Item_Del_Cb Elm_Genlist_Item_Del_Cb;
  * @see elm_genlist_item_class_free()
  * @see elm_genlist_item_append()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI Elm_Genlist_Item_Class *elm_genlist_item_class_new(void);
 
@@ -57,7 +62,7 @@ EAPI Elm_Genlist_Item_Class *elm_genlist_item_class_new(void);
  * @see elm_genlist_item_class_ref()
  * @see elm_genlist_item_class_unref()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void elm_genlist_item_class_free(Elm_Genlist_Item_Class *itc);
 
@@ -70,7 +75,7 @@ EAPI void elm_genlist_item_class_free(Elm_Genlist_Item_Class *itc);
  *
  * @see elm_genlist_item_class_unref()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void elm_genlist_item_class_ref(Elm_Genlist_Item_Class *itc);
 
@@ -85,7 +90,7 @@ EAPI void elm_genlist_item_class_ref(Elm_Genlist_Item_Class *itc);
  * @see elm_genlist_item_class_ref()
  * @see elm_genlist_item_class_free()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void elm_genlist_item_class_unref(Elm_Genlist_Item_Class *itc);
 
@@ -104,7 +109,7 @@ EAPI void elm_genlist_item_class_unref(Elm_Genlist_Item_Class *itc);
  * In order to set a content or something else as a tooltip, look at
  * elm_genlist_item_tooltip_content_cb_set().
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void                          elm_genlist_item_tooltip_text_set(Elm_Object_Item *it, const char *text);
 
@@ -132,7 +137,7 @@ EAPI void                          elm_genlist_item_tooltip_text_set(Elm_Object_
  * In order to set just a text as a tooltip, look at
  * elm_genlist_item_tooltip_text_set().
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void                          elm_genlist_item_tooltip_content_cb_set(Elm_Object_Item *it, Elm_Tooltip_Item_Content_Cb func, const void *data, Evas_Smart_Cb del_cb);
 
@@ -149,7 +154,7 @@ EAPI void                          elm_genlist_item_tooltip_content_cb_set(Elm_O
  *
  * @see elm_genlist_item_tooltip_content_cb_set()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void                          elm_genlist_item_tooltip_unset(Elm_Object_Item *it);
 
@@ -172,7 +177,7 @@ EAPI void                          elm_genlist_item_tooltip_unset(Elm_Object_Ite
  *
  * @see elm_genlist_item_tooltip_style_get()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void                          elm_genlist_item_tooltip_style_set(Elm_Object_Item *it, const char *style);
 
@@ -186,7 +191,7 @@ EAPI void                          elm_genlist_item_tooltip_style_set(Elm_Object
  *
  * @see elm_genlist_item_tooltip_style_set() for more details
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI const char                   *elm_genlist_item_tooltip_style_get(const Elm_Object_Item *it);
 
@@ -232,7 +237,7 @@ EAPI Eina_Bool                     elm_genlist_item_tooltip_window_mode_get(cons
  * @see elm_genlist_item_cursor_get()
  * @see elm_genlist_item_cursor_unset()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void                          elm_genlist_item_cursor_set(Elm_Object_Item *it, const char *cursor);
 
@@ -248,7 +253,7 @@ EAPI void                          elm_genlist_item_cursor_set(Elm_Object_Item *
  * @see elm_genlist_item_cursor_set() for more details
  * @see elm_genlist_item_cursor_unset()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI const char                   *elm_genlist_item_cursor_get(const Elm_Object_Item *it);
 
@@ -265,7 +270,7 @@ EAPI const char                   *elm_genlist_item_cursor_get(const Elm_Object_
  * @see elm_object_cursor_unset()
  * @see elm_genlist_item_cursor_set() for more details
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void                          elm_genlist_item_cursor_unset(Elm_Object_Item *it);
 
@@ -290,7 +295,7 @@ EAPI void                          elm_genlist_item_cursor_unset(Elm_Object_Item
  * @see elm_genlist_item_cursor_engine_only_set()
  * @see elm_genlist_item_cursor_style_get()
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void                          elm_genlist_item_cursor_style_set(Elm_Object_Item *it, const char *style);
 
@@ -304,7 +309,7 @@ EAPI void                          elm_genlist_item_cursor_style_set(Elm_Object_
  *
  * @see elm_genlist_item_cursor_style_set() for more details
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI const char                   *elm_genlist_item_cursor_style_get(const Elm_Object_Item *it);
 
@@ -324,7 +329,7 @@ EAPI const char                   *elm_genlist_item_cursor_style_get(const Elm_O
  * @note By default, cursors will only be looked for between those
  * provided by the rendering engine.
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI void                          elm_genlist_item_cursor_engine_only_set(Elm_Object_Item *it, Eina_Bool engine_only);
 
@@ -340,7 +345,7 @@ EAPI void                          elm_genlist_item_cursor_engine_only_set(Elm_O
  *
  * @see elm_genlist_item_cursor_engine_only_set(), for more details
  *
- * @ingroup Genlist
+ * @ingroup Elm_Genlist
  */
 EAPI Eina_Bool                     elm_genlist_item_cursor_engine_only_get(const Elm_Object_Item *it);
 

@@ -8,6 +8,7 @@ EOLIAN_FLAGS = @DEPS_EOLIAN_FLAGS@ \
 
 include $(top_srcdir)/Makefile_Eolian_Helper.am
 include $(top_srcdir)/Makefile_Eolian_Cxx_Helper.am
+include $(top_srcdir)/Makefile_Eolian_Js_Helper.am
 
 AM_CPPFLAGS = \
 -DELM_INTERNAL_API_ARGESFSDFEFC=1 \
@@ -55,6 +56,7 @@ elm_widget_clock.h \
 elm_widget_colorselector.h \
 elm_widget_conform.h \
 elm_widget_container.h \
+elm_widget_combobox.h \
 elm_widget_ctxpopup.h \
 elm_widget_datetime.h \
 elm_widget_dayselector.h \
@@ -113,6 +115,8 @@ includesub_HEADERS = \
 elc_ctxpopup.h \
 elc_ctxpopup_eo.h \
 elc_ctxpopup_legacy.h \
+elc_combobox.h \
+elc_combobox_legacy.h \
 elc_fileselector.h \
 elc_fileselector_eo.h \
 elc_fileselector_legacy.h \
@@ -347,6 +351,8 @@ elm_systray_eo.h \
 elm_systray_common.h \
 elm_systray_watcher.h \
 elm_sys_notify.h \
+elm_sys_notify.eo.h \
+elm_sys_notify_dbus.eo.h \
 elm_table.h \
 elm_table_eo.h \
 elm_table_legacy.h \
@@ -412,6 +418,7 @@ elm_clock.c \
 elm_cnp.c \
 elm_colorselector.c \
 elm_color_class.c \
+elc_combobox.c \
 elm_config.c \
 elm_conform.c \
 elm_container.c \
@@ -476,7 +483,9 @@ elm_spinner.c \
 elm_store.c \
 elm_systray.c \
 elm_systray_watcher.c \
+elm_sys_notify_interface.c \
 elm_sys_notify.c \
+elm_sys_notify_dbus.c \
 elm_table.c \
 elm_theme.c \
 elm_thumb.c \
@@ -526,6 +535,7 @@ elm_calendar.eo \
 elm_check.eo \
 elm_clock.eo \
 elm_colorselector.eo \
+elm_combobox.eo \
 elm_conformant.eo \
 elm_container.eo \
 elm_ctxpopup.eo \
@@ -593,6 +603,9 @@ elm_separator.eo \
 elm_slider.eo \
 elm_slideshow.eo \
 elm_spinner.eo \
+elm_sys_notify_interface.eo \
+elm_sys_notify.eo \
+elm_sys_notify_dbus.eo \
 elm_systray.eo \
 elm_table.eo \
 elm_thumb.eo \
@@ -634,6 +647,8 @@ elm_eolian_impl_hh = $(elm_eolian_files:%.eo=%.eo.impl.hh)
 
 elm_eolian_eot_h = $(elm_eolian_type_files:%.eot=%.eot.h)
 
+elm_eolian_js_cc = $(elm_eolian_files:%.eo=%.eo.js.cc)
+
 BUILT_SOURCES = \
 	$(elm_eolian_c)	\
 	$(elm_eolian_h)	\
@@ -656,3 +671,47 @@ nodist_includecxxbindings_HEADERS = Elementary.hh $(elm_eolian_hh) $(elm_eolian_
 CLEANFILES += $(nodist_includecxxbindings_HEADERS)
 EXTRA_DIST += Elementary.hh.in
 endif
+
+if HAVE_JS
+CLEANFILES += $(elm_eolian_js_cc)
+
+lib_LTLIBRARIES += libelementary_js.la
+
+AM_V_CP = $(am__v_CP_@AM_V@)
+am__v_CP_ = $(am__v_CP_@AM_DEFAULT_V@)
+am__v_CP_0 = @echo "  CP  " $@;
+CP = cp
+
+if HAVE_NODEJS
+elm.node: libelementary_js.la
+	$(AM_V_CP)$(CP) $(abs_top_builddir)/src/lib/.libs/libelementary_js.so $(abs_top_builddir)/src/lib/elm.node
+
+elmnodedir = $(libdir)/node_modules
+elmnode_DATA = elm.node
+
+CLEANFILES += ${elmnodedir_DATA}
+EXTRA_DIST += ${elmnodedir_DATA}
+
+BUILT_SOURCES += ${elmnodedir_DATA}
+endif
+
+AM_CXXFLAGS = @ELEMENTARY_CFLAGS@ @ELEMENTARY_JS_CFLAGS@
+
+elm_js_object_files = $(elm_eolian_files:%.eo=%.eo.js.l$(OBJEXT))
+elm_js_object_files: $(elm_eolian_js_cc)
+
+libelementary_js_la_SOURCES = elementary_js.cc
+nodist_EXTRA_libelementary_js_la_SOURCES = $(elm_eolian_js_cc)
+
+libelementary_js_la_CXXFLAGS = @ELEMENTARY_CFLAGS@ @ELEMENTARY_JS_CFLAGS@
+libelementary_js_la_LIBADD = \
+@ELEMENTARY_LIBS@ \
+@ELEMENTARY_JS_LIBS@ \
+libelementary.la \
+@LTLIBINTL@ \
+$(elm_js_object_files)
+
+libelementary_js_la_LDFLAGS = @EFL_LTLIBRARY_FLAGS@
+
+endif
+

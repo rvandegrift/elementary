@@ -640,42 +640,12 @@ parse(char *data, off_t size)
    DBG("Parsing done");
 }
 
-int
-is_verbatim(void)
-{
-   return verbatim;
-}
-
-void
-track_verbatim(int on)
-{
-   verbatim = on;
-}
-
 void
 set_verbatim(char *s, int l1, int l2)
 {
    verbatim_line1 = l1;
    verbatim_line2 = l2;
    verbatim_str = s;
-}
-
-char *
-get_verbatim(void)
-{
-   return verbatim_str;
-}
-
-int
-get_verbatim_line1(void)
-{
-   return verbatim_line1;
-}
-
-int
-get_verbatim_line2(void)
-{
-   return verbatim_line2;
 }
 
 void
@@ -1089,7 +1059,7 @@ _alphai(char *s, int *val)
    return s;
 }
 
-char *
+static char *
 _get_numi(char *s, int *val)
 {
    char buf[4096];
@@ -1107,7 +1077,7 @@ _get_numi(char *s, int *val)
    return s + pos;
 }
 
-int
+static int
 _is_numi(char c)
 {
    if (((c >= '0') && (c <= '9')) || ('-' == c) || ('+' == c))
@@ -1116,7 +1086,7 @@ _is_numi(char c)
      return 0;
 }
 
-int
+static int
 _is_op1i(char c)
 {
    switch (c)
@@ -1132,7 +1102,7 @@ _is_op1i(char c)
    return 0;
 }
 
-int
+static int
 _is_op2i(char c)
 {
    switch (c)
@@ -1146,7 +1116,7 @@ _is_op2i(char c)
    return 0;
 }
 
-int
+static int
 _calci(char op, int a, int b)
 {
    switch (op)
@@ -1183,7 +1153,7 @@ _calci(char op, int a, int b)
 
 /* float set of functoins */
 
-double
+static double
 my_atof(const char *s)
 {
    double res = 0;

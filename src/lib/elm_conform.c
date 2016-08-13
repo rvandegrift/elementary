@@ -407,7 +407,8 @@ _create_portrait_indicator(Evas_Object *obj)
    if (!elm_plug_connect(port_indicator, port_indicator_serv_name, 0, EINA_FALSE))
      {
         DBG("Conformant cannot connect to server[%s]\n", port_indicator_serv_name);
-        return NULL;
+        sd->port_indi_timer = ecore_timer_add(ELM_CONFORM_INDICATOR_TIME,
+                                          _port_indicator_connect_cb, obj);
      }
 
    elm_widget_sub_object_add(obj, port_indicator);
@@ -448,7 +449,8 @@ _create_landscape_indicator(Evas_Object *obj)
    if (!elm_plug_connect(land_indicator, land_indicator_serv_name, 0, EINA_FALSE))
      {
         DBG("Conformant cannot connect to server[%s]\n", land_indicator_serv_name);
-        return NULL;
+        sd->land_indi_timer = ecore_timer_add(ELM_CONFORM_INDICATOR_TIME,
+                                          _land_indicator_connect_cb, obj);
      }
 
    elm_widget_sub_object_add(obj, land_indicator);
@@ -832,6 +834,48 @@ _on_prop_change(void *data,
 #ifdef __linux__
    pid = (int)getpid();
 #endif
+
+   Evas_Object *conformant = (Evas_Object *)data;
+   ELM_CONFORMANT_DATA_GET(conformant, sd);
+   if ((ev->atom == ECORE_X_ATOM_NET_WM_STATE) && !sd->win_hidden)
+     {
+        unsigned int i, num;
+        Ecore_X_Window_State *state;
+        ecore_x_netwm_window_state_get(ev->win, &state, &num);
+        if (state)
+          {
+              for (i = 0; i < num; i++)
+                {
+                   if (state[i] == ECORE_X_WINDOW_STATE_HIDDEN)
+                     {
+                        sd->win_hidden = EINA_TRUE;
+
+                        ecore_timer_del(sd->port_indi_timer);
+                        sd->port_indi_timer = NULL;
+
+                        ecore_timer_del(sd->land_indi_timer);
+                        sd->land_indi_timer = NULL;
+
+                        evas_object_del(sd->portrait_indicator);
+                        sd->portrait_indicator = NULL;
+
+                        evas_object_del(sd->landscape_indicator);
+                        sd->landscape_indicator = NULL;
+
+                        return ECORE_CALLBACK_DONE;
+                     }
+                }
+          }
+     }
+   else if (sd->win_hidden)
+     {
+        sd->win_hidden = EINA_FALSE;
+        sd->indmode = elm_win_indicator_mode_get(sd->win);
+        sd->ind_o_mode = elm_win_indicator_opacity_get(sd->win);
+
+        _indicator_mode_set(conformant, sd->indmode);
+        _indicator_opacity_set(conformant, sd->ind_o_mode);
+     }
 
    if (ev->atom == ECORE_X_ATOM_E_ILLUME_ZONE)
      {

@@ -3,6 +3,7 @@
 #endif
 
 #define ELM_INTERFACE_ATSPI_ACCESSIBLE_PROTECTED
+#define ELM_INTERFACE_ATSPI_WIDGET_ACTION_PROTECTED
 
 #include <Elementary.h>
 
@@ -231,11 +232,8 @@ _elm_hover_smt_sub_re_eval(Evas_Object *obj)
    prev = sd->smt_sub;
 
    _elm_hover_left_space_calc(sd, &spc_l, &spc_t, &spc_r, &spc_b);
-   elm_layout_content_unset(obj, sd->smt_sub->swallow);
 
    sub = sd->smt_sub->obj;
-
-   sd->smt_sub->obj = NULL;
 
    sd->smt_sub =
      _elm_hover_smart_content_location_get(sd, spc_l, spc_t, spc_r, spc_b);
@@ -372,9 +370,6 @@ _elm_hover_elm_widget_sub_object_del(Eo *obj, Elm_Hover_Data *sd, Evas_Object *s
         evas_object_event_callback_del_full
           (sd->smt_sub->obj, EVAS_CALLBACK_CHANGED_SIZE_HINTS,
           _on_smt_sub_changed, obj);
-
-        sd->smt_sub->obj = NULL;
-        sd->smt_sub = NULL;
      }
    else
      {
@@ -396,6 +391,7 @@ _elm_hover_subs_del(Elm_Hover_Data *sd)
 {
    ELM_HOVER_PARTS_FOREACH
      ELM_SAFE_FREE(sd->subs[i].obj, evas_object_del);
+   sd->smt_sub = NULL;
 }
 
 EOLIAN static Eina_Bool
@@ -538,7 +534,7 @@ _hov_hide_cb(void *data,
 {
    const char *dismissstr;
 
-   dismissstr = edje_object_data_get(elm_layout_edje_get(data), "dismiss");
+   dismissstr = elm_layout_data_get(data, "dismiss");
 
    if (dismissstr && !strcmp(dismissstr, "on"))
      {
@@ -555,7 +551,7 @@ _hov_dismiss_cb(void *data,
 {
    const char *dismissstr;
 
-   dismissstr = edje_object_data_get(elm_layout_edje_get(data), "dismiss");
+   dismissstr = elm_layout_data_get(data, "dismiss");
 
    if (dismissstr && !strcmp(dismissstr, "on"))
      {
@@ -658,7 +654,7 @@ _elm_hover_evas_object_smart_hide(Eo *obj, Elm_Hover_Data *_pd EINA_UNUSED)
    eo_do_super(obj, MY_CLASS, evas_obj_smart_hide());
 
    // for backward compatibility
-   dismissstr = edje_object_data_get(elm_layout_edje_get(obj), "dismiss");
+   dismissstr = elm_layout_data_get(obj, "dismiss");
 
    if (!dismissstr || strcmp(dismissstr, "on"))
      _hide_signals_emit(obj);
@@ -685,7 +681,7 @@ _elm_hover_eo_base_constructor(Eo *obj, Elm_Hover_Data *_pd EINA_UNUSED)
    eo_do(obj,
          evas_obj_type_set(MY_CLASS_NAME_LEGACY),
          evas_obj_smart_callbacks_descriptions_set(_smart_callbacks),
-         elm_interface_atspi_accessible_role_set(ELM_ATSPI_ROLE_GLASS_PANE));
+         elm_interface_atspi_accessible_role_set(ELM_ATSPI_ROLE_POPUP_MENU));
 
    return obj;
 }
@@ -810,7 +806,7 @@ _elm_hover_dismiss(Eo *obj, Elm_Hover_Data *_pd EINA_UNUSED)
 {
    const char *dismissstr;
 
-   dismissstr = edje_object_data_get(elm_layout_edje_get(obj), "dismiss");
+   dismissstr = elm_layout_data_get(obj, "dismiss");
 
    if (!dismissstr || strcmp(dismissstr, "on"))
      elm_layout_signal_emit(obj, "elm,action,dismiss", ""); // XXX: for compat
@@ -834,6 +830,23 @@ EOLIAN static void
 _elm_hover_class_constructor(Eo_Class *klass)
 {
    evas_smart_legacy_type_register(MY_CLASS_NAME_LEGACY, klass);
+}
+
+static Eina_Bool
+_action_dismiss(Evas_Object *obj, const char *params EINA_UNUSED)
+{
+   eo_do(obj, elm_obj_hover_dismiss());
+   return EINA_TRUE;
+}
+
+EOLIAN const Elm_Atspi_Action *
+_elm_hover_elm_interface_atspi_widget_action_elm_actions_get(Eo *obj EINA_UNUSED, Elm_Hover_Data *pd EINA_UNUSED)
+{
+   static Elm_Atspi_Action atspi_actions[] = {
+          { "dismiss", NULL, NULL, _action_dismiss},
+          { NULL, NULL, NULL, NULL}
+   };
+   return &atspi_actions[0];
 }
 
 #include "elm_hover.eo.c"

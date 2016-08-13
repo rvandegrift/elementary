@@ -637,7 +637,7 @@ _elm_list_elm_widget_event(Eo *obj, Elm_List_Data *sd, Evas_Object *src, Evas_Ca
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return EINA_FALSE;
    if (!sd->items) return EINA_FALSE;
 
-   if (!_elm_config_key_binding_call(obj, ev, key_actions))
+   if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions))
      return EINA_FALSE;
 
    ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
@@ -765,11 +765,6 @@ _elm_list_mode_set_internal(Evas_Object *obj)
         sd->scr_minw = EINA_TRUE;
         sd->scr_minh = EINA_TRUE;
      }
-   else
-     {
-        sd->scr_minw = EINA_FALSE;
-        sd->scr_minh = EINA_FALSE;
-     }
 
    elm_layout_sizing_eval(obj);
 }
@@ -823,6 +818,7 @@ _items_fix(Evas_Object *obj)
    const char *it_plain;
    const char *it_compress;
    const char *it_compress_odd;
+   Eina_Bool separators = EINA_FALSE;
 
    ELM_LIST_DATA_GET(obj, sd);
 
@@ -858,6 +854,7 @@ _items_fix(Evas_Object *obj)
              if (mw > minw[1]) minw[1] = mw;
              if (mh > minh[1]) minh[1] = mh;
           }
+        separators |= it->is_separator;
      }
 
    if ((minw[0] != sd->minw[0]) || (minw[1] != sd->minw[1]) ||
@@ -871,6 +868,7 @@ _items_fix(Evas_Object *obj)
      }
 
    i = 0;
+   elm_box_homogeneous_set(sd->box, !separators);
    EINA_LIST_FOREACH(sd->items, l, eo_it)
      {
         ELM_LIST_ITEM_DATA_GET(eo_it, it);
@@ -933,20 +931,6 @@ _items_fix(Evas_Object *obj)
                           (evas_object_evas_get(VIEW(it)));
                        evas_object_color_set(it->end, 0, 0, 0, 0);
                        it->dummy_end = EINA_TRUE;
-                    }
-                  if (it->icon)
-                    {
-                       evas_object_size_hint_min_set(it->icon, minw[0], minh[0]);
-                       evas_object_size_hint_max_set(it->icon, 99999, 99999);
-                       edje_object_part_swallow
-                          (VIEW(it), "elm.swallow.icon", it->icon);
-                    }
-                  if (it->end)
-                    {
-                       evas_object_size_hint_min_set(it->end, minw[1], minh[1]);
-                       evas_object_size_hint_max_set(it->end, 99999, 99999);
-                       edje_object_part_swallow
-                          (VIEW(it), "elm.swallow.end", it->end);
                     }
                   if (eina_list_count(sd->items) == 1)
                     {
@@ -1016,12 +1000,24 @@ _items_fix(Evas_Object *obj)
              it->fixed = EINA_TRUE;
              it->is_even = it->even;
           }
-
+        if (it->icon)
+          {
+             evas_object_size_hint_min_set(it->icon, minw[0], minh[0]);
+             evas_object_size_hint_max_set(it->icon, 99999, 99999);
+             edje_object_part_swallow
+                (VIEW(it), "elm.swallow.icon", it->icon);
+          }
+        if (it->end)
+          {
+             evas_object_size_hint_min_set(it->end, minw[1], minh[1]);
+             evas_object_size_hint_max_set(it->end, 99999, 99999);
+             edje_object_part_swallow
+                (VIEW(it), "elm.swallow.end", it->end);
+          }
         if (!it->is_separator)
           i++;
      }
 
-   _elm_list_mode_set_internal(obj);
    _elm_list_unwalk(obj, sd);
 
    //focus highlight in_theme is set by list item theme.
@@ -2152,22 +2148,12 @@ _elm_list_item_elm_interface_atspi_accessible_state_set_get(Eo *eo_it, Elm_List_
 }
 
 EOLIAN static char*
-_elm_list_item_elm_interface_atspi_accessible_name_get(Eo *eo_it EINA_UNUSED, Elm_List_Item_Data *data)
+_elm_list_item_elm_interface_atspi_accessible_name_get(Eo *eo_it, Elm_List_Item_Data *data)
 {
+   char *ret;
+   eo_do_super(eo_it, ELM_LIST_ITEM_CLASS, ret = elm_interface_atspi_accessible_name_get());
+   if (ret) return ret;
    return data->label ? strdup(data->label) : NULL;
-}
-
-EOLIAN static Eina_List*
-_elm_list_item_elm_interface_atspi_accessible_children_get(Eo *eo_it EINA_UNUSED, Elm_List_Item_Data *data)
-{
-   Eina_List *ret = NULL;
-
-   if (data->icon && eo_isa(data->icon, ELM_INTERFACE_ATSPI_ACCESSIBLE_MIXIN))
-     ret = eina_list_append(ret, data->icon);
-   if (data->end && eo_isa(data->end, ELM_INTERFACE_ATSPI_ACCESSIBLE_MIXIN))
-     ret = eina_list_append(ret, data->end);
-
-   return ret;
 }
 
 static char *
@@ -2316,6 +2302,7 @@ _item_new(Evas_Object *obj,
    WIDGET_ITEM_DATA_SET(EO_OBJ(it), data);
 
    VIEW(it) = edje_object_add(evas_object_evas_get(obj));
+   edje_object_update_hints_set(VIEW(it), 1);
 
    /* access */
    if (_elm_config->access_mode == ELM_ACCESS_MODE_ON)
@@ -2337,19 +2324,19 @@ _item_new(Evas_Object *obj,
 
    if (it->icon)
      {
-        eo_do(it->icon, elm_interface_atspi_accessible_parent_set(eo_it));
         elm_widget_sub_object_add(obj, it->icon);
         evas_object_event_callback_add
           (it->icon, EVAS_CALLBACK_CHANGED_SIZE_HINTS, _size_hints_changed_cb,
           obj);
+        eo_do(it->icon, elm_interface_atspi_accessible_type_set(ELM_ATSPI_TYPE_DISABLED));
      }
    if (it->end)
      {
-        eo_do(it->end, elm_interface_atspi_accessible_parent_set(eo_it));
         elm_widget_sub_object_add(obj, it->end);
         evas_object_event_callback_add
           (it->end, EVAS_CALLBACK_CHANGED_SIZE_HINTS, _size_hints_changed_cb,
           obj);
+        eo_do(it->end, elm_interface_atspi_accessible_type_set(ELM_ATSPI_TYPE_DISABLED));
      }
 
    if (_elm_config->atspi_mode)
@@ -2452,6 +2439,7 @@ _elm_list_evas_object_smart_add(Eo *obj, Elm_List_Data *priv)
    priv->box = elm_box_add(obj);
    evas_object_size_hint_weight_set(priv->box, EVAS_HINT_EXPAND, 0.0);
    evas_object_size_hint_align_set(priv->box, EVAS_HINT_FILL, 0.0);
+   eo_do(priv->box, elm_interface_atspi_accessible_type_set(ELM_ATSPI_TYPE_DISABLED));
 
    /* FIXME: change this ugly code path later */
    elm_widget_on_show_region_hook_set(priv->box, _show_region_hook, obj);
@@ -2663,8 +2651,6 @@ _elm_list_horizontal_set(Eo *obj, Elm_List_Data *sd, Eina_Bool horizontal)
         evas_object_size_hint_align_set(sd->box, EVAS_HINT_FILL, 0.0);
         eo_do(obj, elm_interface_scrollable_bounce_allow_set(EINA_FALSE, bounce));
      }
-
-   _elm_list_mode_set_internal(obj);
 }
 
 EOLIAN static Eina_Bool
@@ -3208,9 +3194,11 @@ _elm_list_elm_interface_atspi_widget_action_elm_actions_get(Eo *obj EINA_UNUSED,
 }
 
 EOLIAN Eina_List*
-_elm_list_elm_interface_atspi_accessible_children_get(Eo *eo_item EINA_UNUSED, Elm_List_Data *pd)
+_elm_list_elm_interface_atspi_accessible_children_get(Eo *obj, Elm_List_Data *pd)
 {
-   return eina_list_clone(pd->items);
+   Eina_List *ret;
+   eo_do_super(obj, ELM_LIST_CLASS, ret = elm_interface_atspi_accessible_children_get());
+   return eina_list_merge(eina_list_clone(pd->items), ret);
 }
 
 EOLIAN int

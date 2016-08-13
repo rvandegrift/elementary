@@ -159,8 +159,6 @@ class Elm.Dayselector (Elm.Layout)
    }
    events {
       dayselector,changed;
-      language,changed;
-      access,changed;
    }
 
 }

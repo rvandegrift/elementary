@@ -51,6 +51,10 @@ static Eina_Bool
 _timeout_cb(void *data, Eo *obj EINA_UNUSED,
             const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
 
+static Eina_Bool
+_hide_effect_finished_cb(void *data, Eo *obj EINA_UNUSED,
+            const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED);
+
 static const Elm_Action key_actions[] = {
    {"move", _key_action_move},
    {NULL, NULL}
@@ -58,7 +62,8 @@ static const Elm_Action key_actions[] = {
 
 EO_CALLBACKS_ARRAY_DEFINE(_notify_cb,
    { ELM_NOTIFY_EVENT_BLOCK_CLICKED, _block_clicked_cb },
-   { ELM_NOTIFY_EVENT_TIMEOUT, _timeout_cb }
+   { ELM_NOTIFY_EVENT_TIMEOUT, _timeout_cb },
+   { ELM_NOTIFY_EVENT_DISMISSED, _hide_effect_finished_cb }
 );
 
 static void  _on_content_del(void *data, Evas *e, Evas_Object *obj, void *event_info);
@@ -112,6 +117,16 @@ _timeout_cb(void *data,
 
    return EINA_TRUE;
 }
+
+static Eina_Bool
+_hide_effect_finished_cb(void *data,
+      Eo *obj EINA_UNUSED, const Eo_Event_Description *desc EINA_UNUSED, void *event_info EINA_UNUSED)
+{
+   eo_do(data, eo_event_callback_call(ELM_POPUP_EVENT_DISMISSED, NULL));
+
+   return EINA_TRUE;
+}
+
 
 static Evas_Object *
 _access_object_get(const Evas_Object *obj, const char* part)
@@ -1059,7 +1074,7 @@ _content_text_get(const Elm_Popup_Data *sd)
 }
 
 EOLIAN static const char*
-_elm_popup_elm_layout_text_get(const Eo *obj EINA_UNUSED, Elm_Popup_Data *_pd, const char *part)
+_elm_popup_elm_layout_text_get(Eo *obj EINA_UNUSED, Elm_Popup_Data *_pd, const char *part)
 {
    const char *text = NULL;
 
@@ -1456,7 +1471,7 @@ _elm_popup_elm_widget_event(Eo *obj, Elm_Popup_Data *_pd EINA_UNUSED, Evas_Objec
    if (type != EVAS_CALLBACK_KEY_DOWN) return EINA_FALSE;
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return EINA_FALSE;
 
-   if (!_elm_config_key_binding_call(obj, ev, key_actions))
+   if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions))
      return EINA_FALSE;
 
    ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
@@ -1475,7 +1490,10 @@ _elm_popup_evas_object_smart_add(Eo *obj, Elm_Popup_Data *priv)
 
    priv->notify = elm_notify_add(obj);
    elm_object_style_set(priv->notify, style);
-   elm_notify_align_set(priv->notify, 0.5, 0.5);
+
+   elm_notify_align_set(priv->notify,
+                        _elm_config->popup_horizontal_align,
+                        _elm_config->popup_vertical_align);
    elm_notify_allow_events_set(priv->notify, EINA_FALSE);
    evas_object_size_hint_weight_set
      (priv->notify, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -1817,22 +1835,31 @@ _elm_popup_scrollable_get(Eo *obj EINA_UNUSED, Elm_Popup_Data *pd)
    return pd->scroll;
 }
 
+EOLIAN static void
+_elm_popup_dismiss(Eo *obj EINA_UNUSED, Elm_Popup_Data *pd)
+{
+   elm_layout_signal_emit(pd->main_layout, "elm,state,hide", "elm");
+   elm_notify_dismiss(pd->notify);
+}
+
 static void
 _elm_popup_class_constructor(Eo_Class *klass)
 {
    evas_smart_legacy_type_register(MY_CLASS_NAME_LEGACY, klass);
 }
 
+static Eina_Bool
+_action_dismiss(Evas_Object *obj, const char *params EINA_UNUSED)
+{
+   eo_do(obj, eo_event_callback_call(ELM_POPUP_EVENT_BLOCK_CLICKED, NULL));
+   return EINA_TRUE;
+}
+
 EOLIAN const Elm_Atspi_Action *
 _elm_popup_elm_interface_atspi_widget_action_elm_actions_get(Eo *obj EINA_UNUSED, Elm_Popup_Data *pd EINA_UNUSED)
 {
    static Elm_Atspi_Action atspi_actions[] = {
-          { "move,previous", "move", "previous", _key_action_move},
-          { "move,next", "move", "next", _key_action_move},
-          { "move,left", "move", "left", _key_action_move},
-          { "move,right", "move", "right", _key_action_move},
-          { "move,up", "move", "up", _key_action_move},
-          { "move,down", "move", "down", _key_action_move},
+          { "dismiss", NULL, NULL, _action_dismiss},
           { NULL, NULL, NULL, NULL }
    };
    return &atspi_actions[0];

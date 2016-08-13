@@ -104,7 +104,7 @@ _photocam_image_file_set(Evas_Object *obj, Elm_Photocam_Data *sd)
 static void
 _sizing_eval(Evas_Object *obj)
 {
-   Evas_Coord minw = -1, minh = -1, maxw = -1, maxh = -1;
+   Evas_Coord minw = 0, minh = 0, maxw = -1, maxh = -1;
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
 
    evas_object_size_hint_max_get
@@ -1030,7 +1030,7 @@ _elm_photocam_elm_widget_event(Eo *obj, Elm_Photocam_Data *_pd EINA_UNUSED, Evas
    if (type != EVAS_CALLBACK_KEY_DOWN) return EINA_FALSE;
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return EINA_FALSE;
 
-   if (!_elm_config_key_binding_call(obj, ev, key_actions))
+   if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions))
      return EINA_FALSE;
 
    ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
@@ -1708,6 +1708,9 @@ EAPI Evas_Load_Error
 elm_photocam_file_set(Elm_Photocam *obj, const char *file)
 {
    Eina_Bool ret;
+
+   ELM_PHOTOCAM_CHECK(obj) EVAS_LOAD_ERROR_NONE;
+   EINA_SAFETY_ON_NULL_RETURN_VAL(file, EVAS_LOAD_ERROR_NONE);
    if (eo_do_ret(obj, ret, efl_file_set(file, NULL))) return EVAS_LOAD_ERROR_NONE;
 
    Eina_Error err = eina_error_get();

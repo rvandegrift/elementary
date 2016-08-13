@@ -14,6 +14,11 @@
 #define MY_CLASS_NAME "Elm_Calendar"
 #define MY_CLASS_NAME_LEGACY "elm_calendar"
 
+#define ELM_CALENDAR_BUTTON_LEFT "elm,calendar,button,left"
+#define ELM_CALENDAR_BUTTON_RIGHT "elm,calendar,button,right"
+#define ELM_CALENDAR_BUTTON_YEAR_LEFT "elm,calendar,button_year,left"
+#define ELM_CALENDAR_BUTTON_YEAR_RIGHT "elm,calendar,button_year,right"
+
 static const char SIG_CHANGED[] = "changed";
 static const char SIG_DISPLAY_CHANGED[] = "display,changed";
 
@@ -27,7 +32,54 @@ static const Evas_Smart_Cb_Description _smart_callbacks[] = {
    {NULL, NULL}
 };
 
+/* Originally, the button functionalities of month, year spinners were
+ * implemented by its own edc. There was a bunch of callback functions
+ * for handle the signals. The following functions are the old callback
+ * functions for handle the signals.
+ *    _button_month_dec_start
+ *    _button_year_inc_start
+ *    _button_year_dec_start
+ *    _button_month_stop
+ *    _button_year_stop
+ *
+ * But, it is replaced by elm_button widget objects. The following
+ * callback functions are also newly added for button objects.
+ * We still keep the old signal callback functions for backward compatibility. */
+static void
+_button_widget_month_inc_start_click(void *data,
+                                     Evas_Object *obj EINA_UNUSED,
+                                     void *event_info EINA_UNUSED);
+static void
+_button_widget_month_inc_start(void *data,
+                              Evas_Object *obj EINA_UNUSED,
+                              void *event_info EINA_UNUSED);
+static void
+_button_widget_month_dec_start_click(void *data,
+                                    Evas_Object *obj EINA_UNUSED,
+                                    void *event_info EINA_UNUSED);
+static void
+_button_widget_month_dec_start(void *data,
+                              Evas_Object *obj EINA_UNUSED,
+                              void *event_info EINA_UNUSED);
+static void
+_button_widget_year_inc_start_click(void *data,
+                                    Evas_Object *obj EINA_UNUSED,
+                                    void *event_info EINA_UNUSED);
+static void
+_button_widget_year_inc_start(void *data,
+                              Evas_Object *obj EINA_UNUSED,
+                              void *event_info EINA_UNUSED);
+static void
+_button_widget_year_dec_start_click(void *data,
+                                    Evas_Object *obj EINA_UNUSED,
+                                    void *event_info EINA_UNUSED);
+static void
+_button_widget_year_dec_start(void *data,
+                              Evas_Object *obj EINA_UNUSED,
+                              void *event_info EINA_UNUSED);
+
 /* This two functions should be moved in Eina for next release. */
+#if 0
 static Eina_Tmpstr *
 _eina_tmpstr_strftime(const char *format, const struct tm *tm)
 {
@@ -70,6 +122,7 @@ _eina_tmpstr_steal(Eina_Tmpstr *s)
    eina_tmpstr_del(s);
    return r;
 }
+#endif
 
 static Eina_Bool _key_action_move(Evas_Object *obj, const char *params);
 
@@ -216,19 +269,19 @@ _disable(Elm_Calendar_Data *sd,
 static char *
 _format_month_year(struct tm *selected_time)
 {
-   return _eina_tmpstr_steal(_eina_tmpstr_strftime(E_("%B %Y"), selected_time));
+   return eina_strftime(E_("%B %Y"), selected_time);
 }
 
 static char *
 _format_month(struct tm *selected_time)
 {
-   return _eina_tmpstr_steal(_eina_tmpstr_strftime(E_("%B"), selected_time));
+   return eina_strftime(E_("%B"), selected_time);
 }
 
 static char *
 _format_year(struct tm *selected_time)
 {
-   return _eina_tmpstr_steal(_eina_tmpstr_strftime(E_("%Y"), selected_time));
+   return eina_strftime(E_("%Y"), selected_time);
 }
 
 static inline void
@@ -365,24 +418,28 @@ _access_calendar_spinner_register(Evas_Object *obj)
    Elm_Access_Info *ai;
    ELM_CALENDAR_DATA_GET(obj, sd);
 
-   sd->dec_btn_month_access = _elm_access_edje_object_part_object_register
-                            (obj, elm_layout_edje_get(obj), "left_bt");
-   ai = _elm_access_info_get(sd->dec_btn_month_access);
+   if (!sd->dec_btn_month)
+     sd->dec_btn_month = _elm_access_edje_object_part_object_register
+        (obj, elm_layout_edje_get(obj), "left_bt");
+   ai = _elm_access_info_get(sd->dec_btn_month);
    _elm_access_text_set(ai, ELM_ACCESS_TYPE, E_("calendar decrement month button"));
 
-   sd->dec_btn_year_access = _elm_access_edje_object_part_object_register
-                            (obj, elm_layout_edje_get(obj), "left_bt_year");
-   ai = _elm_access_info_get(sd->dec_btn_year_access);
+   if (!sd->dec_btn_year)
+     sd->dec_btn_year = _elm_access_edje_object_part_object_register
+        (obj, elm_layout_edje_get(obj), "left_bt_year");
+   ai = _elm_access_info_get(sd->dec_btn_year);
    _elm_access_text_set(ai, ELM_ACCESS_TYPE, E_("calendar decrement year button"));
 
-   sd->inc_btn_month_access = _elm_access_edje_object_part_object_register
-                            (obj, elm_layout_edje_get(obj), "right_bt");
-   ai = _elm_access_info_get(sd->inc_btn_month_access);
+   if (!sd->inc_btn_month)
+     sd->inc_btn_month = _elm_access_edje_object_part_object_register
+        (obj, elm_layout_edje_get(obj), "right_bt");
+   ai = _elm_access_info_get(sd->inc_btn_month);
    _elm_access_text_set(ai, ELM_ACCESS_TYPE, E_("calendar increment month button"));
 
-   sd->inc_btn_year_access = _elm_access_edje_object_part_object_register
-                            (obj, elm_layout_edje_get(obj), "right_bt_year");
-   ai = _elm_access_info_get(sd->inc_btn_year_access);
+   if (!sd->inc_btn_year)
+     sd->inc_btn_year = _elm_access_edje_object_part_object_register
+        (obj, elm_layout_edje_get(obj), "right_bt_year");
+   ai = _elm_access_info_get(sd->inc_btn_year);
    _elm_access_text_set(ai, ELM_ACCESS_TYPE, E_("calendar increment year button"));
 
    sd->month_access = _elm_access_edje_object_part_object_register
@@ -623,28 +680,187 @@ _set_headers(Evas_Object *obj)
    static char part[] = "ch_0.text";
    int i;
    ELM_CALENDAR_DATA_GET(obj, sd);
+   time_t weekday = 259200; /* Just the first sunday since epoch */
 
    elm_layout_freeze(obj);
 
    sd->filling = EINA_TRUE;
-   for (i = 0; i < ELM_DAY_LAST; i++)
+   if (sd->weekdays_set)
      {
-        part[3] = i + '0';
-        elm_layout_text_set
-          (obj, part, sd->weekdays[(i + sd->first_week_day) % ELM_DAY_LAST]);
+        for (i = 0; i < ELM_DAY_LAST; i++)
+          {
+             part[3] = i + '0';
+             elm_layout_text_set(obj, part, sd->weekdays[(i + sd->first_week_day) % ELM_DAY_LAST]);
+          }
      }
+   else
+     {
+        for (i = 0; i < ELM_DAY_LAST; i++)
+          {
+             struct tm *info;
+
+             /* I don't know of a better way of doing it */
+             info = gmtime(&weekday);
+             if (info)
+               {
+                  char *buf;
+                  buf = eina_strftime("%a", info);
+                  if (buf)
+                    {
+                       sd->weekdays[i] = eina_stringshare_add(buf);
+                       free(buf);
+                    }
+                  else
+                    {
+                       /* If we failed getting day, get a default value */
+                       sd->weekdays[i] = _days_abbrev[i];
+                       WRN("Failed getting weekday name for '%s' from locale.",
+                           _days_abbrev[i]);
+                    }
+               }
+             part[3] = i + '0';
+             elm_layout_text_set(obj, part, sd->weekdays[i]);
+             weekday += 86400; /* Advance by a day */
+          }
+    }
    sd->filling = EINA_FALSE;
 
    elm_layout_thaw(obj);
 }
 
+static void
+_spinner_buttons_add(Evas_Object *obj, Elm_Calendar_Data *sd)
+{
+   char left_buf[255] = { 0 };
+   char right_buf[255] = { 0 };
+
+   ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
+
+   snprintf(left_buf, sizeof(left_buf), "calendar/decrease/%s", elm_object_style_get(obj));
+   snprintf(right_buf, sizeof(right_buf), "calendar/increase/%s", elm_object_style_get(obj));
+
+   if (edje_object_part_exists(wd->resize_obj, ELM_CALENDAR_BUTTON_LEFT))
+     {
+        if (sd->dec_btn_month && eo_isa(sd->dec_btn_month, ELM_ACCESS_CLASS))
+          {
+             _elm_access_edje_object_part_object_unregister
+               (obj, elm_layout_edje_get(obj), "left_bt");
+             sd->dec_btn_month = NULL;
+          }
+
+        if (!sd->dec_btn_month)
+          {
+             sd->dec_btn_month = elm_button_add(obj);
+             elm_button_autorepeat_set(sd->dec_btn_month, EINA_TRUE);
+             elm_button_autorepeat_initial_timeout_set(sd->dec_btn_month, 0.5);
+             elm_button_autorepeat_gap_timeout_set(sd->dec_btn_month, 0.2);
+             evas_object_smart_callback_add(sd->dec_btn_month, "clicked", _button_widget_month_dec_start_click, obj);
+             evas_object_smart_callback_add(sd->dec_btn_month, "repeated", _button_widget_month_dec_start, obj);
+          }
+
+        elm_object_style_set(sd->dec_btn_month, left_buf);
+        elm_layout_content_set(obj, ELM_CALENDAR_BUTTON_LEFT, sd->dec_btn_month);
+     }
+   else if (sd->dec_btn_month && !eo_isa(sd->dec_btn_month, ELM_ACCESS_CLASS))
+     {
+        evas_object_del(sd->dec_btn_month);
+        sd->dec_btn_month = NULL;
+     }
+
+   if (edje_object_part_exists(wd->resize_obj, ELM_CALENDAR_BUTTON_RIGHT))
+     {
+        if (sd->inc_btn_month && eo_isa(sd->inc_btn_month, ELM_ACCESS_CLASS))
+          {
+             _elm_access_edje_object_part_object_unregister
+               (obj, elm_layout_edje_get(obj), "right_bt");
+             sd->inc_btn_month = NULL;
+          }
+
+        if (!sd->inc_btn_month)
+          {
+             sd->inc_btn_month = elm_button_add(obj);
+             elm_button_autorepeat_set(sd->inc_btn_month, EINA_TRUE);
+             elm_button_autorepeat_initial_timeout_set(sd->inc_btn_month, 0.5);
+             elm_button_autorepeat_gap_timeout_set(sd->inc_btn_month, 0.2);
+             evas_object_smart_callback_add(sd->inc_btn_month, "clicked", _button_widget_month_inc_start_click, obj);
+             evas_object_smart_callback_add(sd->inc_btn_month, "repeated", _button_widget_month_inc_start, obj);
+          }
+
+        elm_object_style_set(sd->inc_btn_month, right_buf);
+        elm_layout_content_set(obj, ELM_CALENDAR_BUTTON_RIGHT, sd->inc_btn_month);
+     }
+   else if (sd->inc_btn_month && !eo_isa(sd->inc_btn_month, ELM_ACCESS_CLASS))
+     {
+        evas_object_del(sd->inc_btn_month);
+        sd->inc_btn_month = NULL;
+     }
+
+   if (edje_object_part_exists(wd->resize_obj, ELM_CALENDAR_BUTTON_YEAR_LEFT))
+     {
+        if (sd->dec_btn_year && eo_isa(sd->dec_btn_year, ELM_ACCESS_CLASS))
+          {
+             _elm_access_edje_object_part_object_unregister
+               (obj, elm_layout_edje_get(obj), "left_bt_year");
+             sd->dec_btn_year = NULL;
+          }
+
+        if (!sd->dec_btn_year)
+          {
+             sd->dec_btn_year = elm_button_add(obj);
+             elm_button_autorepeat_set(sd->dec_btn_year, EINA_TRUE);
+             elm_button_autorepeat_initial_timeout_set(sd->dec_btn_year, 0.5);
+             elm_button_autorepeat_gap_timeout_set(sd->dec_btn_year, 0.2);
+             evas_object_smart_callback_add(sd->dec_btn_year, "clicked", _button_widget_year_dec_start_click, obj);
+             evas_object_smart_callback_add(sd->dec_btn_year, "repeated", _button_widget_year_dec_start, obj);
+         }
+
+        elm_object_style_set(sd->dec_btn_year, left_buf);
+        elm_layout_content_set(obj, ELM_CALENDAR_BUTTON_YEAR_LEFT, sd->dec_btn_year);
+     }
+   else if (sd->dec_btn_year && !eo_isa(sd->dec_btn_year, ELM_ACCESS_CLASS))
+     {
+        evas_object_del(sd->dec_btn_year);
+        sd->dec_btn_year = NULL;
+     }
+
+   if (edje_object_part_exists(wd->resize_obj, ELM_CALENDAR_BUTTON_YEAR_RIGHT))
+     {
+        if (sd->inc_btn_year && eo_isa(sd->inc_btn_year, ELM_ACCESS_CLASS))
+          {
+             _elm_access_edje_object_part_object_unregister
+               (obj, elm_layout_edje_get(obj), "right_bt_year");
+             sd->inc_btn_year = NULL;
+          }
+
+        if (!sd->inc_btn_year)
+          {
+             sd->inc_btn_year = elm_button_add(obj);
+             elm_button_autorepeat_set(sd->inc_btn_year, EINA_TRUE);
+             elm_button_autorepeat_initial_timeout_set(sd->inc_btn_year, 0.5);
+             elm_button_autorepeat_gap_timeout_set(sd->inc_btn_year, 0.2);
+             evas_object_smart_callback_add(sd->inc_btn_year, "clicked", _button_widget_year_inc_start_click, obj);
+             evas_object_smart_callback_add(sd->inc_btn_year, "repeated", _button_widget_year_inc_start, obj);
+          }
+
+        elm_object_style_set(sd->inc_btn_year, right_buf);
+        elm_layout_content_set(obj, ELM_CALENDAR_BUTTON_YEAR_RIGHT, sd->inc_btn_year);
+     }
+   else if (sd->inc_btn_year && !eo_isa(sd->inc_btn_year, ELM_ACCESS_CLASS))
+     {
+        evas_object_del(sd->inc_btn_year);
+        sd->inc_btn_year = NULL;
+     }
+}
+
 EOLIAN static Eina_Bool
-_elm_calendar_elm_widget_theme_apply(Eo *obj, Elm_Calendar_Data *_pd EINA_UNUSED)
+_elm_calendar_elm_widget_theme_apply(Eo *obj, Elm_Calendar_Data *sd)
 {
    Eina_Bool int_ret = EINA_FALSE;
 
    eo_do_super(obj, MY_CLASS, int_ret = elm_obj_widget_theme_apply());
    if (!int_ret) return EINA_FALSE;
+
+   _spinner_buttons_add(obj, sd);
 
    evas_object_smart_changed(obj);
    return EINA_TRUE;
@@ -756,6 +972,7 @@ _spin_year_value(void *data)
    return ECORE_CALLBACK_RENEW;
 }
 
+/* Legacy callbacks for signals from edje */
 static void
 _button_month_inc_start(void *data,
                   Evas_Object *obj EINA_UNUSED,
@@ -772,6 +989,7 @@ _button_month_inc_start(void *data,
    _spin_month_value(data);
 }
 
+/* Legacy callbacks for signals from edje */
 static void
 _button_month_dec_start(void *data,
                   Evas_Object *obj EINA_UNUSED,
@@ -788,6 +1006,7 @@ _button_month_dec_start(void *data,
    _spin_month_value(data);
 }
 
+/* Legacy callbacks for signals from edje */
 static void
 _button_month_stop(void *data,
                    Evas_Object *obj EINA_UNUSED,
@@ -800,6 +1019,7 @@ _button_month_stop(void *data,
    ELM_SAFE_FREE(sd->spin_month, ecore_timer_del);
 }
 
+/* Legacy callbacks for signals from edje */
 static void
 _button_year_inc_start(void *data,
                        Evas_Object *obj EINA_UNUSED,
@@ -816,6 +1036,7 @@ _button_year_inc_start(void *data,
    _spin_year_value(data);
 }
 
+/* Legacy callbacks for signals from edje */
 static void
 _button_year_dec_start(void *data,
                   Evas_Object *obj EINA_UNUSED,
@@ -832,6 +1053,7 @@ _button_year_dec_start(void *data,
    _spin_year_value(data);
 }
 
+/* Legacy callbacks for signals from edje */
 static void
 _button_year_stop(void *data,
                   Evas_Object *obj EINA_UNUSED,
@@ -842,6 +1064,126 @@ _button_year_stop(void *data,
 
    sd->interval = sd->first_interval;
    ELM_SAFE_FREE(sd->spin_year, ecore_timer_del);
+}
+
+static void
+_button_widget_month_inc_start_click(void *data,
+                                    Evas_Object *obj EINA_UNUSED,
+                                    void *event_info EINA_UNUSED)
+{
+   ELM_CALENDAR_DATA_GET(data, sd);
+   if (sd->month_repeated)
+     {
+        sd->month_repeated = EINA_FALSE;
+        return;
+     }
+
+   sd->interval = sd->first_interval;
+   sd->spin_speed = 1;
+   _spin_month_value(data);
+}
+
+static void
+_button_widget_month_inc_start(void *data,
+                              Evas_Object *obj EINA_UNUSED,
+                              void *event_info EINA_UNUSED)
+{
+   ELM_CALENDAR_DATA_GET(data, sd);
+
+   sd->interval = sd->first_interval;
+   sd->spin_speed = 1;
+   _spin_month_value(data);
+   sd->month_repeated = EINA_TRUE;
+}
+
+static void
+_button_widget_month_dec_start_click(void *data,
+                                    Evas_Object *obj EINA_UNUSED,
+                                    void *event_info EINA_UNUSED)
+{
+   ELM_CALENDAR_DATA_GET(data, sd);
+   if (sd->month_repeated)
+     {
+        sd->month_repeated = EINA_FALSE;
+        return;
+     }
+
+   sd->interval = sd->first_interval;
+   sd->spin_speed = -1;
+   _spin_month_value(data);
+}
+
+static void
+_button_widget_month_dec_start(void *data,
+                              Evas_Object *obj EINA_UNUSED,
+                              void *event_info EINA_UNUSED)
+{
+   ELM_CALENDAR_DATA_GET(data, sd);
+
+   sd->interval = sd->first_interval;
+   sd->spin_speed = -1;
+   _spin_month_value(data);
+   sd->month_repeated = EINA_TRUE;
+}
+
+static void
+_button_widget_year_inc_start_click(void *data,
+                                    Evas_Object *obj EINA_UNUSED,
+                                    void *event_info EINA_UNUSED)
+{
+   ELM_CALENDAR_DATA_GET(data, sd);
+   if (sd->year_repeated)
+     {
+        sd->year_repeated = EINA_FALSE;
+        return;
+     }
+
+   sd->interval = sd->first_interval;
+   sd->spin_speed = 1;
+   _spin_year_value(data);
+}
+
+static void
+_button_widget_year_inc_start(void *data,
+                              Evas_Object *obj EINA_UNUSED,
+                              void *event_info EINA_UNUSED)
+{
+   ELM_CALENDAR_DATA_GET(data, sd);
+
+   sd->interval = sd->first_interval;
+   sd->spin_speed = 1;
+   _spin_year_value(data);
+   sd->year_repeated = EINA_TRUE;
+}
+
+static void
+_button_widget_year_dec_start_click(void *data,
+                                    Evas_Object *obj EINA_UNUSED,
+                                    void *event_info EINA_UNUSED)
+{
+   ELM_CALENDAR_DATA_GET(data, sd);
+   if (sd->year_repeated)
+     {
+        sd->year_repeated = EINA_FALSE;
+        return;
+     }
+
+   sd->interval = sd->first_interval;
+   sd->spin_speed = -1;
+   _spin_year_value(data);
+}
+
+static void
+_button_widget_year_dec_start(void *data,
+                              Evas_Object *obj EINA_UNUSED,
+                              void *event_info EINA_UNUSED)
+{
+   ELM_CALENDAR_DATA_GET(data, sd);
+
+   sd->interval = sd->first_interval;
+   sd->spin_speed = -1;
+   _spin_year_value(data);
+   sd->year_repeated = EINA_TRUE;
 }
 
 static int
@@ -994,7 +1336,7 @@ _elm_calendar_elm_widget_event(Eo *obj, Elm_Calendar_Data *sd EINA_UNUSED, Evas_
 
    if (type != EVAS_CALLBACK_KEY_DOWN) return EINA_FALSE;
 
-   if (!_elm_config_key_binding_call(obj, ev, key_actions))
+   if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions))
      return EINA_FALSE;
 
    ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
@@ -1032,9 +1374,8 @@ _style_changed(void *data,
 EOLIAN static void
 _elm_calendar_evas_object_smart_add(Eo *obj, Elm_Calendar_Data *priv)
 {
-   time_t weekday = 259200; /* Just the first sunday since epoch */
    time_t current_time;
-   int i, t;
+   int t;
 
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
 
@@ -1075,33 +1416,6 @@ _elm_calendar_evas_object_smart_add(Eo *obj, Elm_Calendar_Data *priv)
       (wd->resize_obj, "load", "*",
        _style_changed, obj);
 
-   for (i = 0; i < ELM_DAY_LAST; i++)
-     {
-        struct tm *info;
-
-        /* I don't know of a better way of doing it */
-        info = gmtime(&weekday);
-        if (info)
-          {
-             Eina_Tmpstr *buf;
-
-             buf = _eina_tmpstr_strftime("%a", info);
-             if (buf)
-               {
-                  priv->weekdays[i] = eina_stringshare_add(buf);
-                  eina_tmpstr_del(buf);
-               }
-             else
-               {
-                  /* If we failed getting day, get a default value */
-                  priv->weekdays[i] = _days_abbrev[i];
-                  WRN("Failed getting weekday name for '%s' from locale.",
-                      _days_abbrev[i]);
-               }
-          }
-        weekday += 86400; /* Advance by a day */
-     }
-
    current_time = time(NULL);
    localtime_r(&current_time, &priv->shown_time);
    priv->current_time = priv->shown_time;
@@ -1114,6 +1428,8 @@ _elm_calendar_evas_object_smart_add(Eo *obj, Elm_Calendar_Data *priv)
    if (!elm_layout_theme_set(obj, "calendar", "base",
                              elm_object_style_get(obj)))
      CRI("Failed to set layout!");
+
+   _spinner_buttons_add(obj, priv);
 
    evas_object_smart_changed(obj);
 
@@ -1151,7 +1467,7 @@ static Eina_Bool _elm_calendar_smart_focus_next_enable = EINA_FALSE;
 EOLIAN static Eina_Bool
 _elm_calendar_elm_widget_focus_next_manager_is(Eo *obj EINA_UNUSED, Elm_Calendar_Data *_pd EINA_UNUSED)
 {
-   return _elm_calendar_smart_focus_next_enable;
+   return EINA_TRUE;
 }
 
 EOLIAN static Eina_Bool
@@ -1169,12 +1485,12 @@ _elm_calendar_elm_widget_focus_next(Eo *obj, Elm_Calendar_Data *sd, Elm_Focus_Di
    Evas_Object *po;
 
    items = eina_list_append(items, sd->month_access);
-   items = eina_list_append(items, sd->dec_btn_month_access);
-   items = eina_list_append(items, sd->inc_btn_month_access);
+   items = eina_list_append(items, sd->dec_btn_month);
+   items = eina_list_append(items, sd->inc_btn_month);
 
    items = eina_list_append(items, sd->year_access);
-   items = eina_list_append(items, sd->dec_btn_year_access);
-   items = eina_list_append(items, sd->inc_btn_year_access);
+   items = eina_list_append(items, sd->dec_btn_year);
+   items = eina_list_append(items, sd->inc_btn_year);
 
    day = 0;
    maxdays = _maxdays_get(&sd->shown_time, 0);
@@ -1203,6 +1519,7 @@ _access_obj_process(Evas_Object *obj, Eina_Bool is_access)
    int maxdays, day, i;
 
    ELM_CALENDAR_DATA_GET(obj, sd);
+   ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
 
    if (is_access)
      _access_calendar_register(obj);
@@ -1223,22 +1540,34 @@ _access_obj_process(Evas_Object *obj, Eina_Bool is_access)
                }
           }
 
-        if (sd->dec_btn_month_access)
-          _elm_access_edje_object_part_object_unregister
-            (obj, elm_layout_edje_get(obj), "left_bt");
-        if (sd->inc_btn_month_access)
-          _elm_access_edje_object_part_object_unregister
-            (obj, elm_layout_edje_get(obj), "right_bt");
+        if (sd->dec_btn_month && eo_isa(sd->dec_btn_month, ELM_ACCESS_CLASS))
+          {
+             _elm_access_edje_object_part_object_unregister
+               (obj, elm_layout_edje_get(obj), "left_bt");
+             sd->dec_btn_month = NULL;
+          }
+        if (sd->inc_btn_month && eo_isa(sd->inc_btn_month, ELM_ACCESS_CLASS))
+          {
+             _elm_access_edje_object_part_object_unregister
+               (obj, elm_layout_edje_get(obj), "right_bt");
+             sd->inc_btn_month = NULL;
+          }
         if (sd->month_access)
           _elm_access_edje_object_part_object_unregister
             (obj, elm_layout_edje_get(obj), "month_text");
 
-        if (sd->dec_btn_year_access)
-          _elm_access_edje_object_part_object_unregister
-            (obj, elm_layout_edje_get(obj), "left_bt_year");
-        if (sd->inc_btn_year_access)
-          _elm_access_edje_object_part_object_unregister
-            (obj, elm_layout_edje_get(obj), "right_bt_year");
+        if (sd->dec_btn_year && eo_isa(sd->dec_btn_year, ELM_ACCESS_CLASS))
+          {
+             _elm_access_edje_object_part_object_unregister
+               (obj, elm_layout_edje_get(obj), "left_bt_year");
+             sd->dec_btn_year = NULL;
+          }
+        if (sd->inc_btn_year && eo_isa(sd->inc_btn_year, ELM_ACCESS_CLASS))
+          {
+             _elm_access_edje_object_part_object_unregister
+               (obj, elm_layout_edje_get(obj), "right_bt_year");
+             sd->inc_btn_year = NULL;
+          }
         if (sd->year_access)
           _elm_access_edje_object_part_object_unregister
             (obj, elm_layout_edje_get(obj), "year_text");
@@ -1285,6 +1614,7 @@ _elm_calendar_weekdays_names_set(Eo *obj, Elm_Calendar_Data *sd, const char **we
      {
         eina_stringshare_replace(&sd->weekdays[i], weekdays[i]);
      }
+   sd->weekdays_set = EINA_TRUE;
 
    evas_object_smart_changed(obj);
 }

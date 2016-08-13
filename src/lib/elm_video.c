@@ -129,7 +129,7 @@ _elm_video_elm_widget_event(Eo *obj, Elm_Video_Data *_pd EINA_UNUSED, Evas_Objec
    if (type != EVAS_CALLBACK_KEY_DOWN) return EINA_FALSE;
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return EINA_FALSE;
 
-   if (!_elm_config_key_binding_call(obj, ev, key_actions))
+   if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions))
      {
         INF("keyname: '%s' not handled", ev->key);
         return EINA_FALSE;
@@ -144,7 +144,7 @@ _elm_video_elm_layout_sizing_eval(Eo *obj, Elm_Video_Data *sd)
 {
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
 
-   Evas_Coord minw = -1, minh = -1;
+   Evas_Coord minw = 0, minh = 0;
    Evas_Coord w = 0, h = 0;
 
    evas_object_size_hint_request_get(sd->emotion, &minw, &minh);

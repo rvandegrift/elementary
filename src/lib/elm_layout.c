@@ -121,7 +121,6 @@ _sizing_eval(Evas_Object *obj, Elm_Layout_Smart_Data *sd)
    edje_object_size_min_restricted_calc(wd->resize_obj, &minw, &minh,
                                         rest_w, rest_h);
    evas_object_size_hint_min_set(obj, minw, minh);
-   evas_object_size_hint_max_set(obj, -1, -1);
 
    sd->restricted_calc_w = sd->restricted_calc_h = EINA_FALSE;
 }
@@ -1190,7 +1189,7 @@ _elm_layout_text_set(Eo *obj, Elm_Layout_Smart_Data *sd, const char *part, const
 }
 
 EOLIAN static const char*
-_elm_layout_text_get(const Eo *obj, Elm_Layout_Smart_Data *sd, const char *part)
+_elm_layout_text_get(Eo *obj, Elm_Layout_Smart_Data *sd, const char *part)
 {
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd, NULL);
 
@@ -1424,7 +1423,7 @@ _elm_layout_table_pack(Eo *obj, Elm_Layout_Smart_Data *sd, const char *part, Eva
          (wd->resize_obj, part, child, col,
          row, colspan, rowspan))
      {
-        ERR("child %p could not be packed into box part '%s' col=%uh, row=%hu,"
+        ERR("child %p could not be packed into table part '%s' col=%uh, row=%hu,"
             " colspan=%hu, rowspan=%hu", child, part, col, row, colspan,
             rowspan);
         return EINA_FALSE;

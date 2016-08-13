@@ -45,6 +45,7 @@ void test_clock(void *data, Evas_Object *obj, void *event_info);
 void test_clock_edit(void *data, Evas_Object *obj, void *event_info);
 void test_clock_edit2(void *data, Evas_Object *obj, void *event_info);
 void test_clock_pause(void *data, Evas_Object *obj, void *event_info);
+void test_combobox(void *data, Evas_Object *obj, void *event_info);
 void test_check(void *data, Evas_Object *obj, void *event_info);
 void test_check_toggle(void *data, Evas_Object *obj, void *event_info);
 void test_radio(void *data, Evas_Object *obj, void *event_info);
@@ -124,6 +125,7 @@ void test_genlist_item_styles(void *data, Evas_Object *obj, void *event_info);
 void test_genlist_multi_select(void *data, Evas_Object *obj, void *event_info);
 void test_genlist_del(void *data, Evas_Object *obj, void *event_info);
 void test_genlist_filter(void *data, Evas_Object *obj, void *event_info);
+void test_genlist_show_bring(void *data, Evas_Object *obj, void *event_info);
 void test_gesture_layer(void *data, Evas_Object *obj, void *event_info);
 void test_gesture_layer2(void *data, Evas_Object *obj, void *event_info);
 void test_gesture_layer3(void *data, Evas_Object *obj, void *event_info);
@@ -268,7 +270,7 @@ void test_win_dialog(void *data, Evas_Object *obj, void *event_info);
 void test_box_disable(void *data, Evas_Object *obj, void *event_info);
 void test_layout_disable(void *data, Evas_Object *obj, void *event_info);
 
-void test_colorclass();
+void test_colorclass(void *data, Evas_Object *obj, void *event_info);
 
 Evas_Object *win, *tbx; // TODO: refactoring
 void *tt;
@@ -388,7 +390,7 @@ _space_removed_string_get(const char *name)
    char *ret;
 
    len = strlen(name);
-   ret = calloc(sizeof(char), len + 1);
+   ret = calloc(len + 1, sizeof(char));
 
    while (name[i])
      {
@@ -695,6 +697,7 @@ add_tests:
    ADD_TEST(NULL, "Lists - Genlist", "Genlist Multi Select", test_genlist_multi_select);
    ADD_TEST(NULL, "Lists - Genlist", "Genlist Del", test_genlist_del);
    ADD_TEST(NULL, "Lists - Genlist", "Genlist Filter", test_genlist_filter);
+   ADD_TEST(NULL, "Lists - Genlist", "Genlist Show/Bring", test_genlist_show_bring);
 
    //------------------------------//
 
@@ -751,6 +754,7 @@ add_tests:
    ADD_TEST(NULL, "Selectors", "FlipSelector", test_flipselector);
    ADD_TEST(NULL, "Selectors", "DaySelector", test_dayselector);
    ADD_TEST(NULL, "Selectors", "Main menu", test_main_menu);
+   ADD_TEST(NULL, "Selectors", "Combobox", test_combobox);
 
    //------------------------------//
    ADD_TEST(NULL, "Cursors", "Cursor", test_cursor);
@@ -987,7 +991,7 @@ elm_main(int argc, char **argv)
                     "$ elementary_test -to [TEST_NAME]\n\n"
                     "Examples:\n"
                     "$ elementary_test -to Button\n\n");
-             exit(EXIT_SUCCESS);
+             goto end;
           }
         autorun = argv[1];
      }
@@ -1012,6 +1016,9 @@ elm_main(int argc, char **argv)
 
    EINA_LIST_FREE(tests, t)
      free(t);
+
+end:
+   eina_log_domain_unregister(_log_domain);
 
    /* exit code */
    return 0;

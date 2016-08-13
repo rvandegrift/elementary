@@ -428,6 +428,7 @@ _viewport_region_get(Evas_Object *obj)
    Eina_Rectangle *rect = eina_rectangle_new(0, 0, 0, 0);
    Evas_Object *parent;
 
+   if (!rect) return NULL;
    if (sd->scroll)
      eo_do(obj, elm_interface_scrollable_content_viewport_geometry_get
            (&rect->x, &rect->y, &rect->w, &rect->h));
@@ -704,17 +705,12 @@ _drag_drop_cb(void *data EINA_UNUSED,
 
    ELM_ENTRY_DATA_GET(obj, sd);
 
-   edje_object_part_text_cursor_copy
-     (sd->entry_edje, "elm.text", EDJE_CURSOR_MAIN, /*->*/ EDJE_CURSOR_USER);
    rv = edje_object_part_text_cursor_coord_set
        (sd->entry_edje, "elm.text", EDJE_CURSOR_MAIN, drop->x, drop->y);
 
    if (!rv) WRN("Warning: Failed to position cursor: paste anyway");
 
    rv = _selection_data_cb(NULL, obj, drop);
-
-   edje_object_part_text_cursor_copy
-     (sd->entry_edje, "elm.text", EDJE_CURSOR_USER, /*->*/ EDJE_CURSOR_MAIN);
 
    return rv;
 }
@@ -1194,6 +1190,13 @@ _elm_entry_elm_widget_on_focus_region(Eo *obj EINA_UNUSED, Elm_Entry_Data *sd, E
 {
    edje_object_part_text_cursor_geometry_get
      (sd->entry_edje, "elm.text", x, y, w, h);
+
+   if (sd->single_line)
+     {
+        evas_object_geometry_get(sd->entry_edje, NULL, NULL, NULL, h);
+        if (y) *y = 0;
+     }
+
    return EINA_TRUE;
 }
 
@@ -1233,13 +1236,13 @@ _elm_entry_elm_widget_sub_object_del(Eo *obj, Elm_Entry_Data *_pd EINA_UNUSED, E
 static void
 _hoversel_position(Evas_Object *obj)
 {
-   Evas_Coord cx, cy, cw, ch, x, y, mw, mh;
+   Evas_Coord cx, cy, cw, ch, x, y, mw, mh, w, h;
 
    ELM_ENTRY_DATA_GET(obj, sd);
 
    cx = cy = 0;
    cw = ch = 1;
-   evas_object_geometry_get(sd->entry_edje, &x, &y, NULL, NULL);
+   evas_object_geometry_get(sd->entry_edje, &x, &y, &w, &h);
    if (sd->use_down)
      {
         cx = sd->downx - x;
@@ -1252,18 +1255,12 @@ _hoversel_position(Evas_Object *obj)
        (sd->entry_edje, "elm.text", &cx, &cy, &cw, &ch);
 
    evas_object_size_hint_min_get(sd->hoversel, &mw, &mh);
-   if (cw < mw)
-     {
-        cx += (cw - mw) / 2;
-        cw = mw;
-     }
-   if (ch < mh)
-     {
-        cy += (ch - mh) / 2;
-        ch = mh;
-     }
+   if (cx + mw > w)
+     cx = w - mw;
+   if (cy + mh > h)
+     cy = h - mh;
    evas_object_move(sd->hoversel, x + cx, y + cy);
-   evas_object_resize(sd->hoversel, cw, ch);
+   evas_object_resize(sd->hoversel, mw, mh);
 }
 
 static void
@@ -1774,7 +1771,10 @@ _long_press_cb(void *data)
         _magnifier_show(data);
         _magnifier_move(data, sd->downx, sd->downy);
      }
-   else if (!_elm_config->desktop_entry)
+   /* Context menu will not appear if context menu disabled is set
+    * as false on a long press callback */
+   else if (!_elm_config->context_menu_disabled &&
+            (!_elm_config->desktop_entry))
      _menu_call(data);
 
    sd->long_pressed = EINA_TRUE;
@@ -1793,8 +1793,9 @@ _key_down_cb(void *data,
                void *event_info)
 {
    Evas_Event_Key_Down *ev = event_info;
-
-   if (!strcmp(ev->key, "Menu"))
+   /* First check if context menu disabled is false or not, and
+    * then check for key id */
+   if ((!_elm_config->context_menu_disabled) && !strcmp(ev->key, "Menu"))
      _menu_call(data);
 }
 
@@ -1820,7 +1821,9 @@ _mouse_down_cb(void *data,
          sd->longpress_timer = ecore_timer_add
            (_elm_config->longpress_timeout, _long_press_cb, data);
       }
-   else if (ev->button == 3)
+    /* If right button is pressed and context menu disabled is true,
+     * then only context menu will appear */
+   else if (ev->button == 3 && (!_elm_config->context_menu_disabled))
      {
         if (_elm_config->desktop_entry)
           {
@@ -1846,10 +1849,16 @@ _mouse_up_cb(void *data,
    if (ev->button == 1)
      {
         ELM_SAFE_FREE(sd->longpress_timer, ecore_timer_del);
+        /* Since context menu disabled flag was checked at long press start while mouse
+         * down, hence the same should be checked at mouse up from a long press
+         * as well */
         if ((sd->long_pressed) && (_elm_config->magnifier_enable))
           {
              _magnifier_hide(data);
-             _menu_call(data);
+             if (!_elm_config->context_menu_disabled)
+               {
+                  _menu_call(data);
+               }
           }
         else
           {
@@ -1865,10 +1874,13 @@ _mouse_up_cb(void *data,
                }
           }
      }
-   else if ((ev->button == 3) && (!_elm_config->desktop_entry))
+  /* Since context menu disabled flag was checked at mouse right key down,
+   * hence the same should be stopped at mouse up of right key as well */
+   else if ((ev->button == 3) && (!_elm_config->context_menu_disabled) &&
+            (!_elm_config->desktop_entry))
      {
-        sd->use_down = 1;
-        _menu_call(data);
+         sd->use_down = 1;
+         _menu_call(data);
      }
 }
 
@@ -2561,7 +2573,7 @@ _item_get(void *data,
         o = ip->func(ip->data, data, item);
         if (o) return o;
      }
-   if (!strncmp(item, "file://", 7))
+   if (item && !strncmp(item, "file://", 7))
      {
         const char *fname = item + 7;
 
@@ -2587,6 +2599,80 @@ _item_get(void *data,
      elm_widget_theme_object_set
        (data, o, "entry/emoticon", "wtf", style);
    return o;
+}
+
+static Eina_Bool
+_entry_has_new_line(const char *text)
+{
+   if (!text) return EINA_FALSE;
+
+   while (*text)
+     {
+        if (!strncmp(text, "<br", 3) || !strncmp(text, "<ps", 3))
+          {
+             if (text[4] == '>' || ((text[4] == '/') && (text[5] == '>')))
+               {
+                  return EINA_TRUE;
+               }
+          }
+        text++;
+     }
+
+   return EINA_FALSE;
+}
+
+static char *
+_entry_remove_new_line(const char *text)
+{
+   Eina_Strbuf *str;
+   char *new_text;
+
+   if (!_entry_has_new_line(text)) return NULL;
+
+   str = eina_strbuf_new();
+   eina_strbuf_append(str, text);
+   eina_strbuf_replace_all(str, "<br>", "");
+   eina_strbuf_replace_all(str, "<br/>", "");
+   eina_strbuf_replace_all(str, "<ps>", "");
+   eina_strbuf_replace_all(str, "<ps/>", "");
+   new_text = eina_strbuf_string_steal(str);
+   eina_strbuf_free(str);
+   return new_text;
+}
+
+static void
+_entry_new_line_filter_init(Evas_Object *obj)
+{
+   const char *text;
+   char *text2 = NULL;
+
+   if (elm_entry_is_empty(obj)) return;
+
+   text = elm_entry_entry_get(obj);
+   text2 = _entry_remove_new_line(text);
+   if (text2)
+     {
+        elm_entry_entry_set(obj, text2);
+        free(text2);
+     }
+}
+
+static void
+_entry_new_line_filter_cb(void *data EINA_UNUSED,
+                          Evas_Object *entry EINA_UNUSED,
+                          char **text)
+{
+   char *ret;
+
+   if (!*text) return;
+
+   ret = _entry_remove_new_line(*text);
+
+   if (ret)
+     {
+        free(*text);
+        *text = ret;
+     }
 }
 
 static void
@@ -2986,7 +3072,7 @@ _elm_entry_elm_layout_text_set(Eo *obj, Elm_Entry_Data *sd, const char *part, co
 }
 
 EOLIAN static const char *
-_elm_entry_elm_layout_text_get(const Eo *obj, Elm_Entry_Data *sd, const char *item)
+_elm_entry_elm_layout_text_get(Eo *obj, Elm_Entry_Data *sd, const char *item)
 {
    const char *text;
 
@@ -3252,7 +3338,10 @@ _start_handler_mouse_up_cb(void *data,
    sd->start_handler_down = EINA_FALSE;
    if (_elm_config->magnifier_enable)
      _magnifier_hide(data);
-   if ((!_elm_config->desktop_entry) && (sd->long_pressed))
+   /* Context menu should not appear, even in case of selector mode, if the
+    * flag is false (disabled) */
+   if ((!_elm_config->context_menu_disabled) &&
+       (!_elm_config->desktop_entry) && (sd->long_pressed))
      _menu_call(data);
 }
 
@@ -3351,7 +3440,10 @@ _end_handler_mouse_up_cb(void *data,
    sd->end_handler_down = EINA_FALSE;
    if (_elm_config->magnifier_enable)
      _magnifier_hide(data);
-   if ((!_elm_config->desktop_entry) && (sd->long_pressed))
+   /* Context menu appear was checked in case of selector start, and hence
+    * the same should be checked at selector end as well */
+   if ((!_elm_config->context_menu_disabled) &&
+       (!_elm_config->desktop_entry) && (sd->long_pressed))
      _menu_call(data);
 }
 
@@ -3737,7 +3829,7 @@ _cb_added(void *data EINA_UNUSED,
 }
 
 static Eina_Bool
-_cb_deled(void *data EINA_UNUSED,
+_cb_deleted(void *data EINA_UNUSED,
           Eo *obj,
           const Eo_Event_Description *desc EINA_UNUSED,
           void *event_info)
@@ -3759,8 +3851,8 @@ _elm_entry_eo_base_constructor(Eo *obj, Elm_Entry_Data *_pd EINA_UNUSED)
          evas_obj_type_set(MY_CLASS_NAME_LEGACY),
          evas_obj_smart_callbacks_descriptions_set(_smart_callbacks),
          elm_interface_atspi_accessible_role_set(ELM_ATSPI_ROLE_ENTRY),
-         eo_event_callback_add(EO_EV_CALLBACK_ADD, _cb_added, NULL),
-         eo_event_callback_add(EO_EV_CALLBACK_DEL, _cb_deled, NULL));
+         eo_event_callback_add(EO_BASE_EVENT_CALLBACK_ADD, _cb_added, NULL),
+         eo_event_callback_add(EO_BASE_EVENT_CALLBACK_DEL, _cb_deleted, NULL));
 
    return obj;
 }
@@ -3795,6 +3887,15 @@ _elm_entry_single_line_set(Eo *obj, Elm_Entry_Data *sd, Eina_Bool single_line)
    sd->line_wrap = ELM_WRAP_NONE;
    if (elm_entry_cnp_mode_get(obj) == ELM_CNP_MODE_MARKUP)
      elm_entry_cnp_mode_set(obj, ELM_CNP_MODE_NO_IMAGE);
+   if (sd->single_line)
+     {
+        _entry_new_line_filter_init(obj);
+        elm_entry_markup_filter_append(obj, _entry_new_line_filter_cb, NULL);
+     }
+   else
+     {
+        elm_entry_markup_filter_remove(obj, _entry_new_line_filter_cb, NULL);
+     }
    eo_do(obj, elm_obj_widget_theme_apply());
 
    if (sd->scroll)
@@ -5697,8 +5798,11 @@ _elm_entry_elm_interface_atspi_accessible_state_set_get(Eo *obj, Elm_Entry_Data 
 }
 
 EOLIAN static char*
-_elm_entry_elm_interface_atspi_accessible_name_get(Eo *obj EINA_UNUSED, Elm_Entry_Data *sd)
+_elm_entry_elm_interface_atspi_accessible_name_get(Eo *obj, Elm_Entry_Data *sd)
 {
+   char *name;
+   eo_do_super(obj, ELM_ENTRY_CLASS, name = elm_interface_atspi_accessible_name_get());
+   if (name && strncmp("", name, 1)) return name;
    const char *ret = edje_object_part_text_get(sd->entry_edje, "elm.guide");
    return ret ? strdup(ret) : NULL;
 }

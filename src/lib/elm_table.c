@@ -121,7 +121,7 @@ _elm_table_elm_widget_theme_apply(Eo *obj, void *sd EINA_UNUSED)
 static void
 _sizing_eval(Evas_Object *obj)
 {
-   Evas_Coord minw = -1, minh = -1, maxw = -1, maxh = -1;
+   Evas_Coord minw = 0, minh = 0, maxw = -1, maxh = -1;
    Evas_Coord w, h;
 
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
@@ -405,6 +405,14 @@ EOLIAN static void
 _elm_table_class_constructor(Eo_Class *klass)
 {
    evas_smart_legacy_type_register(MY_CLASS_NAME_LEGACY, klass);
+}
+
+EOLIAN void
+_elm_table_evas_object_smart_calculate(Eo *obj, void *pd EINA_UNUSED)
+{
+   ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
+
+   evas_object_smart_calculate(wd->resize_obj);
 }
 
 #include "elm_table.eo.c"

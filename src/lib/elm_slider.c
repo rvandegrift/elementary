@@ -65,6 +65,9 @@ _delay_change(void *data)
    sd->delay = NULL;
    eo_do(data, eo_event_callback_call(ELM_SLIDER_EVENT_DELAY_CHANGED, NULL));
 
+   if (_elm_config->atspi_mode)
+     elm_interface_atspi_accessible_value_changed_signal_emit(data);
+
    return ECORE_CALLBACK_CANCEL;
 }
 
@@ -95,7 +98,6 @@ _val_fetch(Evas_Object *obj, Eina_Bool user_event)
         if (user_event)
           {
              eo_do(obj, eo_event_callback_call(ELM_SLIDER_EVENT_CHANGED, NULL));
-             elm_interface_atspi_accessible_value_changed_signal_emit(obj);
              ecore_timer_del(sd->delay);
              sd->delay = ecore_timer_add(SLIDER_DELAY_CHANGED_INTERVAL, _delay_change, obj);
           }
@@ -127,6 +129,10 @@ _val_set(Evas_Object *obj)
    ELM_WIDGET_DATA_GET_OR_RETURN(obj, wd);
    edje_object_part_drag_value_set
      (wd->resize_obj, "elm.dragable.slider", pos, pos);
+
+   // emit accessiblity event also if value was chagend by API
+   if (_elm_config->atspi_mode)
+     elm_interface_atspi_accessible_value_changed_signal_emit(obj);
 }
 
 static void
@@ -319,6 +325,7 @@ _popup_show(void *data,
         edje_object_signal_emit(sd->popup, "popup,show", "elm"); // XXX: for compat
         edje_object_signal_emit(sd->popup, "elm,popup,show", "elm");
      }
+   ELM_SAFE_FREE(sd->wheel_indicator_timer, ecore_timer_del);
 }
 
 static void
@@ -406,6 +413,16 @@ _key_action_drag(Evas_Object *obj, const char *params)
    return EINA_TRUE;
 }
 
+static Eina_Bool
+_wheel_indicator_timer_cb(void *data)
+{
+   ELM_SLIDER_DATA_GET(data, sd);
+   sd->wheel_indicator_timer = NULL;
+
+   _popup_hide(data, NULL, NULL, NULL);
+   return ECORE_CALLBACK_CANCEL;
+}
+
 EOLIAN static Eina_Bool
 _elm_slider_elm_widget_event(Eo *obj, Elm_Slider_Data *sd EINA_UNUSED, Evas_Object *src, Evas_Callback_Type type, void *event_info)
 {
@@ -416,7 +433,7 @@ _elm_slider_elm_widget_event(Eo *obj, Elm_Slider_Data *sd EINA_UNUSED, Evas_Obje
         Evas_Event_Key_Down *ev = event_info;
         if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return EINA_FALSE;
 
-        if (!_elm_config_key_binding_call(obj, ev, key_actions))
+        if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions))
           return EINA_FALSE;
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
@@ -433,6 +450,12 @@ _elm_slider_elm_widget_event(Eo *obj, Elm_Slider_Data *sd EINA_UNUSED, Evas_Obje
         if (mev->z < 0) _drag_up(obj, NULL, NULL, NULL);
         else _drag_down(obj, NULL, NULL, NULL);
         mev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _popup_show(obj, NULL, NULL, NULL);
+        _slider_update(obj, EINA_TRUE);
+        sd->wheel_indicator_timer =
+           ecore_timer_add(0.5, _wheel_indicator_timer_cb, obj);
+        return EINA_TRUE;
+
      }
    else return EINA_FALSE;
 
@@ -851,6 +874,8 @@ _elm_slider_evas_object_smart_add(Eo *obj, Elm_Slider_Data *priv)
    priv->indicator_show = EINA_TRUE;
    priv->indicator_visible_mode = elm_config_slider_indicator_visible_mode_get();
    priv->val_max = 1.0;
+   //TODO: customize this time duration from api or theme data.
+   priv->wheel_indicator_duration = 0.25;
    priv->step = SLIDER_STEP;
 
    if (!elm_layout_theme_set
@@ -905,6 +930,7 @@ _elm_slider_evas_object_smart_del(Eo *obj, Elm_Slider_Data *sd)
    eina_stringshare_del(sd->indicator);
    eina_stringshare_del(sd->units);
    ecore_timer_del(sd->delay);
+   ecore_timer_del(sd->wheel_indicator_timer);
    evas_object_del(sd->popup);
 
    eo_do_super(obj, MY_CLASS, evas_obj_smart_del());
@@ -1208,7 +1234,7 @@ _elm_slider_elm_widget_on_focus(Eo *obj, Elm_Slider_Data *sd EINA_UNUSED, Elm_Ob
 
    if ((sd->indicator_visible_mode == ELM_SLIDER_INDICATOR_VISIBLE_MODE_ON_FOCUS) && elm_widget_focus_get(obj))
      _popup_show(obj, NULL, NULL, NULL);
-   else
+   else if (!elm_widget_focus_get(obj))
      _popup_hide(obj, NULL, NULL, NULL);
 
    return int_ret;

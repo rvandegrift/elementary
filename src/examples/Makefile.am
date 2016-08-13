@@ -52,6 +52,7 @@ codegen_example.edc \
 colorselector_example_01.c \
 conformant_example_01.c \
 conformant_example_02.c \
+combobox_example_01.c \
 ctxpopup_example_01.c \
 datetime_example.c \
 dayselector_example.c \
@@ -145,7 +146,8 @@ evas3d_scene_on_button_example.c \
 evas3d_object_on_button_example.c \
 evas3d_map_example.edc \
 evas3d_map_example.c \
-track_example_01.c
+track_example_01.c \
+twitter_example_01.edc
 
 if HAVE_CXX11
 SRCS += \
@@ -197,7 +199,8 @@ files_DATA += \
 	theme_example.edj \
 	layout_example.edj\
 	codegen_example.edj \
-	evas3d_map_example.edj
+	evas3d_map_example.edj \
+	twitter_example_01.edj
 
 clean-local:
 	rm -f *.edj *.epb *.cfg *.cfg.bkp
@@ -235,6 +238,7 @@ codegen_example \
 colorselector_example_01 \
 conformant_example_01 \
 conformant_example_02 \
+combobox_example_01 \
 ctxpopup_example_01 \
 datetime_example \
 dayselector_example \
@@ -417,6 +421,7 @@ label_example_01:label_example_01.png:0.0 \
 theme_example_01:theme_example_01.png:0.0 \
 conformant_example_01:conformant_example_01.png:0.0 \
 conformant_example_02:conformant_example_02.png:0.0 \
+combobox_example_01:combobox_example_01.png:0.0 \
 calendar_example_01:calendar_example_01.png:0.0 \
 calendar_example_02:calendar_example_02.png:0.0 \
 calendar_example_03:calendar_example_03.png:0.0 \
@@ -528,4 +533,4 @@ screenshots:
 
 endif
 
-EXTRA_DIST = dict.txt layout_example.edc theme_example.edc codegen_example.edc evas3d_map_example.edc
+EXTRA_DIST = dict.txt layout_example.edc theme_example.edc codegen_example.edc evas3d_map_example.edc twitter_example_01.edc

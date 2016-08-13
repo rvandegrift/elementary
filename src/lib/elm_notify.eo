@@ -68,6 +68,11 @@ class Elm.Notify (Elm.Container)
             timeout: double; [[The timeout in seconds]]
          }
       }
+      dismiss {
+         [[Dismiss a notify object.
+           @since 1.17
+         ]]
+      }
    }
    implements {
       class.constructor;
@@ -94,6 +99,7 @@ class Elm.Notify (Elm.Container)
    events {
       block,clicked;
       timeout;
+      dismissed;
    }
 
 }

@@ -12,104 +12,120 @@
 #include <Ecore_X_Cursor.h>
 #endif
 
+#ifdef HAVE_ELEMENTARY_COCOA
+# include <Ecore_Cocoa_Cursor.h>
+#endif
+
+#ifdef HAVE_ELEMENTARY_WIN32
+#include <Ecore_Win32.h>
+#endif
+
 #define _cursor_key "_elm_cursor"
 
 struct _Cursor_Id
 {
    const char *name;
-#ifdef HAVE_ELEMENTARY_X
-   int id;
+
+#if defined(HAVE_ELEMENTARY_X) || defined(HAVE_ELEMENTARY_COCOA) || defined(HAVE_ELEMENTARY_WIN32)
+   int id; /* For X */
+   int cid; /* For Cocoa */
 #endif
 };
 
-#ifdef HAVE_ELEMENTARY_X
-#define CURSOR(_name, _xid) \
-   {_name , _xid}
+#if defined(HAVE_ELEMENTARY_X)
+# if defined(HAVE_ELEMENTARY_COCOA)
+#  define CURSOR(_name, _id, _cid) {_name, ECORE_X_CURSOR_##_id, _cid}
 # else
-#define CURSOR(_name, _xid) \
-   {_name}
+#  define CURSOR(_name, _id, _cid) { _name, ECORE_X_CURSOR_##_id, -1 }
+# endif
+#elif defined(HAVE_ELEMENTARY_COCOA)
+#  define CURSOR(_name, _id, _cid) {_name, -1, _cid}
+#elif defined(HAVE_ELEMENTARY_WIN32)
+#  define CURSOR(_name, _id, _cid) {_name, ECORE_WIN32_CURSOR_X11_SHAPE_##_id, -1 }
+#else
+#  define CURSOR(_name, _id, _cid) { _name }
 #endif
 
 /* Please keep order in sync with Ecore_X_Cursor.h values! */
-struct _Cursor_Id _cursors[] =
+static struct _Cursor_Id _cursors[] =
 {
-   CURSOR(ELM_CURSOR_X                  , ECORE_X_CURSOR_X                  ),
-   CURSOR(ELM_CURSOR_ARROW              , ECORE_X_CURSOR_ARROW              ),
-   CURSOR(ELM_CURSOR_BASED_ARROW_DOWN   , ECORE_X_CURSOR_BASED_ARROW_DOWN   ),
-   CURSOR(ELM_CURSOR_BASED_ARROW_UP     , ECORE_X_CURSOR_UP                 ),
-   CURSOR(ELM_CURSOR_BOAT               , ECORE_X_CURSOR_BOAT               ),
-   CURSOR(ELM_CURSOR_BOGOSITY           , ECORE_X_CURSOR_BOGOSITY           ),
-   CURSOR(ELM_CURSOR_BOTTOM_LEFT_CORNER , ECORE_X_CURSOR_BOTTOM_LEFT_CORNER ),
-   CURSOR(ELM_CURSOR_BOTTOM_RIGHT_CORNER, ECORE_X_CURSOR_BOTTOM_RIGHT_CORNER),
-   CURSOR(ELM_CURSOR_BOTTOM_SIDE        , ECORE_X_CURSOR_BOTTOM_SIDE        ),
-   CURSOR(ELM_CURSOR_BOTTOM_TEE         , ECORE_X_CURSOR_BOTTOM_TEE         ),
-   CURSOR(ELM_CURSOR_BOX_SPIRAL         , ECORE_X_CURSOR_BOX_SPIRAL         ),
-   CURSOR(ELM_CURSOR_CENTER_PTR         , ECORE_X_CURSOR_CENTER_PTR         ),
-   CURSOR(ELM_CURSOR_CIRCLE             , ECORE_X_CURSOR_CIRCLE             ),
-   CURSOR(ELM_CURSOR_CLOCK              , ECORE_X_CURSOR_CLOCK              ),
-   CURSOR(ELM_CURSOR_COFFEE_MUG         , ECORE_X_CURSOR_COFFEE_MUG         ),
-   CURSOR(ELM_CURSOR_CROSS              , ECORE_X_CURSOR_CROSS              ),
-   CURSOR(ELM_CURSOR_CROSS_REVERSE      , ECORE_X_CURSOR_CROSS_REVERSE      ),
-   CURSOR(ELM_CURSOR_CROSSHAIR          , ECORE_X_CURSOR_CROSSHAIR          ),
-   CURSOR(ELM_CURSOR_DIAMOND_CROSS      , ECORE_X_CURSOR_DIAMOND_CROSS      ),
-   CURSOR(ELM_CURSOR_DOT                , ECORE_X_CURSOR_DOT                ),
-   CURSOR(ELM_CURSOR_DOT_BOX_MASK       , ECORE_X_CURSOR_DOT_BOX_MASK       ),
-   CURSOR(ELM_CURSOR_DOUBLE_ARROW       , ECORE_X_CURSOR_DOUBLE_ARROW       ),
-   CURSOR(ELM_CURSOR_DRAFT_LARGE        , ECORE_X_CURSOR_DRAFT_LARGE        ),
-   CURSOR(ELM_CURSOR_DRAFT_SMALL        , ECORE_X_CURSOR_DRAFT_SMALL        ),
-   CURSOR(ELM_CURSOR_DRAPED_BOX         , ECORE_X_CURSOR_DRAPED_BOX         ),
-   CURSOR(ELM_CURSOR_EXCHANGE           , ECORE_X_CURSOR_EXCHANGE           ),
-   CURSOR(ELM_CURSOR_FLEUR              , ECORE_X_CURSOR_FLEUR              ),
-   CURSOR(ELM_CURSOR_GOBBLER            , ECORE_X_CURSOR_GOBBLER            ),
-   CURSOR(ELM_CURSOR_GUMBY              , ECORE_X_CURSOR_GUMBY              ),
-   CURSOR(ELM_CURSOR_HAND1              , ECORE_X_CURSOR_HAND1              ),
-   CURSOR(ELM_CURSOR_HAND2              , ECORE_X_CURSOR_HAND2              ),
-   CURSOR(ELM_CURSOR_HEART              , ECORE_X_CURSOR_HEART              ),
-   CURSOR(ELM_CURSOR_ICON               , ECORE_X_CURSOR_ICON               ),
-   CURSOR(ELM_CURSOR_IRON_CROSS         , ECORE_X_CURSOR_IRON_CROSS         ),
-   CURSOR(ELM_CURSOR_LEFT_PTR           , ECORE_X_CURSOR_LEFT_PTR           ),
-   CURSOR(ELM_CURSOR_LEFT_SIDE          , ECORE_X_CURSOR_LEFT_SIDE          ),
-   CURSOR(ELM_CURSOR_LEFT_TEE           , ECORE_X_CURSOR_LEFT_TEE           ),
-   CURSOR(ELM_CURSOR_LEFTBUTTON         , ECORE_X_CURSOR_LEFTBUTTON         ),
-   CURSOR(ELM_CURSOR_LL_ANGLE           , ECORE_X_CURSOR_LL_ANGLE           ),
-   CURSOR(ELM_CURSOR_LR_ANGLE           , ECORE_X_CURSOR_LR_ANGLE           ),
-   CURSOR(ELM_CURSOR_MAN                , ECORE_X_CURSOR_MAN                ),
-   CURSOR(ELM_CURSOR_MIDDLEBUTTON       , ECORE_X_CURSOR_MIDDLEBUTTON       ),
-   CURSOR(ELM_CURSOR_MOUSE              , ECORE_X_CURSOR_MOUSE              ),
-   CURSOR(ELM_CURSOR_PENCIL             , ECORE_X_CURSOR_PENCIL             ),
-   CURSOR(ELM_CURSOR_PIRATE             , ECORE_X_CURSOR_PIRATE             ),
-   CURSOR(ELM_CURSOR_PLUS               , ECORE_X_CURSOR_PLUS               ),
-   CURSOR(ELM_CURSOR_QUESTION_ARROW     , ECORE_X_CURSOR_QUESTION_ARROW     ),
-   CURSOR(ELM_CURSOR_RIGHT_PTR          , ECORE_X_CURSOR_RIGHT_PTR          ),
-   CURSOR(ELM_CURSOR_RIGHT_SIDE         , ECORE_X_CURSOR_RIGHT_SIDE         ),
-   CURSOR(ELM_CURSOR_RIGHT_TEE          , ECORE_X_CURSOR_RIGHT_TEE          ),
-   CURSOR(ELM_CURSOR_RIGHTBUTTON        , ECORE_X_CURSOR_RIGHTBUTTON        ),
-   CURSOR(ELM_CURSOR_RTL_LOGO           , ECORE_X_CURSOR_RTL_LOGO           ),
-   CURSOR(ELM_CURSOR_SAILBOAT           , ECORE_X_CURSOR_SAILBOAT           ),
-   CURSOR(ELM_CURSOR_SB_DOWN_ARROW      , ECORE_X_CURSOR_SB_DOWN_ARROW      ),
-   CURSOR(ELM_CURSOR_SB_H_DOUBLE_ARROW  , ECORE_X_CURSOR_SB_H_DOUBLE_ARROW  ),
-   CURSOR(ELM_CURSOR_SB_LEFT_ARROW      , ECORE_X_CURSOR_SB_LEFT_ARROW      ),
-   CURSOR(ELM_CURSOR_SB_RIGHT_ARROW     , ECORE_X_CURSOR_SB_RIGHT_ARROW     ),
-   CURSOR(ELM_CURSOR_SB_UP_ARROW        , ECORE_X_CURSOR_SB_UP_ARROW        ),
-   CURSOR(ELM_CURSOR_SB_V_DOUBLE_ARROW  , ECORE_X_CURSOR_SB_V_DOUBLE_ARROW  ),
-   CURSOR(ELM_CURSOR_SHUTTLE            , ECORE_X_CURSOR_SHUTTLE            ),
-   CURSOR(ELM_CURSOR_SIZING             , ECORE_X_CURSOR_SIZING             ),
-   CURSOR(ELM_CURSOR_SPIDER             , ECORE_X_CURSOR_SPIDER             ),
-   CURSOR(ELM_CURSOR_SPRAYCAN           , ECORE_X_CURSOR_SPRAYCAN           ),
-   CURSOR(ELM_CURSOR_STAR               , ECORE_X_CURSOR_STAR               ),
-   CURSOR(ELM_CURSOR_TARGET             , ECORE_X_CURSOR_TARGET             ),
-   CURSOR(ELM_CURSOR_TCROSS             , ECORE_X_CURSOR_TCROSS             ),
-   CURSOR(ELM_CURSOR_TOP_LEFT_ARROW     , ECORE_X_CURSOR_TOP_LEFT_ARROW     ),
-   CURSOR(ELM_CURSOR_TOP_LEFT_CORNER    , ECORE_X_CURSOR_TOP_LEFT_CORNER    ),
-   CURSOR(ELM_CURSOR_TOP_RIGHT_CORNER   , ECORE_X_CURSOR_TOP_RIGHT_CORNER   ),
-   CURSOR(ELM_CURSOR_TOP_SIDE           , ECORE_X_CURSOR_TOP_SIDE           ),
-   CURSOR(ELM_CURSOR_TOP_TEE            , ECORE_X_CURSOR_TOP_TEE            ),
-   CURSOR(ELM_CURSOR_TREK               , ECORE_X_CURSOR_TREK               ),
-   CURSOR(ELM_CURSOR_UL_ANGLE           , ECORE_X_CURSOR_UL_ANGLE           ),
-   CURSOR(ELM_CURSOR_UMBRELLA           , ECORE_X_CURSOR_UMBRELLA           ),
-   CURSOR(ELM_CURSOR_UR_ANGLE           , ECORE_X_CURSOR_UR_ANGLE           ),
-   CURSOR(ELM_CURSOR_WATCH              , ECORE_X_CURSOR_WATCH              ),
-   CURSOR(ELM_CURSOR_XTERM              , ECORE_X_CURSOR_XTERM              )
+   CURSOR(ELM_CURSOR_X                  , X                  , ECORE_COCOA_CURSOR_CROSSHAIR),
+   CURSOR(ELM_CURSOR_ARROW              , ARROW              , ECORE_COCOA_CURSOR_ARROW),
+   CURSOR(ELM_CURSOR_BASED_ARROW_DOWN   , BASED_ARROW_DOWN   , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_BASED_ARROW_UP     , UP                 , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_BOAT               , BOAT               , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_BOGOSITY           , BOGOSITY           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_BOTTOM_LEFT_CORNER , BOTTOM_LEFT_CORNER , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_BOTTOM_RIGHT_CORNER, BOTTOM_RIGHT_CORNER, ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_BOTTOM_SIDE        , BOTTOM_SIDE        , ECORE_COCOA_CURSOR_RESIZE_DOWN),
+   CURSOR(ELM_CURSOR_BOTTOM_TEE         , BOTTOM_TEE         , ECORE_COCOA_CURSOR_RESIZE_DOWN),
+   CURSOR(ELM_CURSOR_BOX_SPIRAL         , BOX_SPIRAL         , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_CENTER_PTR         , CENTER_PTR         , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_CIRCLE             , CIRCLE             , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_CLOCK              , CLOCK              , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_COFFEE_MUG         , COFFEE_MUG         , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_CROSS              , CROSS              , ECORE_COCOA_CURSOR_CROSSHAIR),
+   CURSOR(ELM_CURSOR_CROSS_REVERSE      , CROSS_REVERSE      , ECORE_COCOA_CURSOR_CROSSHAIR),
+   CURSOR(ELM_CURSOR_CROSSHAIR          , CROSSHAIR          , ECORE_COCOA_CURSOR_CROSSHAIR),
+   CURSOR(ELM_CURSOR_DIAMOND_CROSS      , DIAMOND_CROSS      , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_DOT                , DOT                , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_DOT_BOX_MASK       , DOT_BOX_MASK       , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_DOUBLE_ARROW       , DOUBLE_ARROW       , ECORE_COCOA_CURSOR_RESIZE_UP_DOWN),
+   CURSOR(ELM_CURSOR_DRAFT_LARGE        , DRAFT_LARGE        , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_DRAFT_SMALL        , DRAFT_SMALL        , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_DRAPED_BOX         , DRAPED_BOX         , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_EXCHANGE           , EXCHANGE           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_FLEUR              , FLEUR              , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_GOBBLER            , GOBBLER            , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_GUMBY              , GUMBY              , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_HAND1              , HAND1              , ECORE_COCOA_CURSOR_POINTING_HAND),
+   CURSOR(ELM_CURSOR_HAND2              , HAND2              , ECORE_COCOA_CURSOR_POINTING_HAND),
+   CURSOR(ELM_CURSOR_HEART              , HEART              , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_ICON               , ICON               , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_IRON_CROSS         , IRON_CROSS         , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_LEFT_PTR           , LEFT_PTR           , ECORE_COCOA_CURSOR_ARROW),
+   CURSOR(ELM_CURSOR_LEFT_SIDE          , LEFT_SIDE          , ECORE_COCOA_CURSOR_RESIZE_LEFT),
+   CURSOR(ELM_CURSOR_LEFT_TEE           , LEFT_TEE           , ECORE_COCOA_CURSOR_RESIZE_LEFT),
+   CURSOR(ELM_CURSOR_LEFTBUTTON         , LEFTBUTTON         , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_LL_ANGLE           , LL_ANGLE           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_LR_ANGLE           , LR_ANGLE           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_MAN                , MAN                , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_MIDDLEBUTTON       , MIDDLEBUTTON       , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_MOUSE              , MOUSE              , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_PENCIL             , PENCIL             , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_PIRATE             , PIRATE             , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_PLUS               , PLUS               , ECORE_COCOA_CURSOR_CROSSHAIR),
+   CURSOR(ELM_CURSOR_QUESTION_ARROW     , QUESTION_ARROW     , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_RIGHT_PTR          , RIGHT_PTR          , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_RIGHT_SIDE         , RIGHT_SIDE         , ECORE_COCOA_CURSOR_RESIZE_RIGHT),
+   CURSOR(ELM_CURSOR_RIGHT_TEE          , RIGHT_TEE          , ECORE_COCOA_CURSOR_RESIZE_RIGHT),
+   CURSOR(ELM_CURSOR_RIGHTBUTTON        , RIGHTBUTTON        , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_RTL_LOGO           , RTL_LOGO           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_SAILBOAT           , SAILBOAT           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_SB_DOWN_ARROW      , SB_DOWN_ARROW      , ECORE_COCOA_CURSOR_RESIZE_DOWN),
+   CURSOR(ELM_CURSOR_SB_H_DOUBLE_ARROW  , SB_H_DOUBLE_ARROW  , ECORE_COCOA_CURSOR_RESIZE_LEFT_RIGHT),
+   CURSOR(ELM_CURSOR_SB_LEFT_ARROW      , SB_LEFT_ARROW      , ECORE_COCOA_CURSOR_RESIZE_LEFT),
+   CURSOR(ELM_CURSOR_SB_RIGHT_ARROW     , SB_RIGHT_ARROW     , ECORE_COCOA_CURSOR_RESIZE_RIGHT),
+   CURSOR(ELM_CURSOR_SB_UP_ARROW        , SB_UP_ARROW        , ECORE_COCOA_CURSOR_RESIZE_UP),
+   CURSOR(ELM_CURSOR_SB_V_DOUBLE_ARROW  , SB_V_DOUBLE_ARROW  , ECORE_COCOA_CURSOR_RESIZE_UP_DOWN),
+   CURSOR(ELM_CURSOR_SHUTTLE            , SHUTTLE            , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_SIZING             , SIZING             , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_SPIDER             , SPIDER             , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_SPRAYCAN           , SPRAYCAN           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_STAR               , STAR               , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_TARGET             , TARGET             , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_TCROSS             , TCROSS             , ECORE_COCOA_CURSOR_CROSSHAIR),
+   CURSOR(ELM_CURSOR_TOP_LEFT_ARROW     , TOP_LEFT_ARROW     , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_TOP_LEFT_CORNER    , TOP_LEFT_CORNER    , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_TOP_RIGHT_CORNER   , TOP_RIGHT_CORNER   , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_TOP_SIDE           , TOP_SIDE           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_TOP_TEE            , TOP_TEE            , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_TREK               , TREK               , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_UL_ANGLE           , UL_ANGLE           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_UMBRELLA           , UMBRELLA           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_UR_ANGLE           , UR_ANGLE           , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_WATCH              , WATCH              , ECORE_COCOA_CURSOR_DEFAULT),
+   CURSOR(ELM_CURSOR_XTERM              , XTERM              , ECORE_COCOA_CURSOR_IBEAM)
 };
 static const int _cursors_count = sizeof(_cursors)/sizeof(struct _Cursor_Id);
 
@@ -146,10 +162,23 @@ struct _Elm_Cursor
      Ecore_X_Window win;
    } x;
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    struct {
-     Ecore_Wl_Window *win;
+     Ecore_Wl2_Window *win;
    } wl;
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+   struct {
+     Ecore_Win32_Cursor *cursor;
+     Ecore_Win32_Window *win;
+   } win32;
+#endif
+
+#ifdef HAVE_ELEMENTARY_COCOA
+   struct {
+      Ecore_Cocoa_Cursor  cursor;
+      Ecore_Cocoa_Window *win;
+   } cocoa;
 #endif
 
    Eina_Bool visible:1;
@@ -207,6 +236,7 @@ static void
 _elm_cursor_hot_change(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
 {
    Elm_Cursor *cur = data;
+   if (cur->hotupdate_job) ecore_job_del(cur->hotupdate_job);
    cur->hotupdate_job = ecore_job_add(_elm_cursor_set_hot_spots, data);
 }
 
@@ -275,16 +305,23 @@ _elm_cursor_set(Elm_Cursor *cur)
              cur->obj = NULL;
              ELM_SAFE_FREE(cur->hotobj, evas_object_del);
           }
-        ecore_evas_object_cursor_set(cur->ee, NULL,
-                                     ELM_OBJECT_LAYER_CURSOR, cur->hot_x,
-                                     cur->hot_y);
 #ifdef HAVE_ELEMENTARY_X
         if (cur->x.win)
           ecore_x_window_cursor_set(cur->x.win, cur->x.cursor);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
         if (cur->wl.win)
-          ecore_wl_window_cursor_from_name_set(cur->wl.win, cur->cursor_name);
+          ecore_wl2_window_cursor_from_name_set(cur->wl.win, cur->cursor_name);
+#endif
+
+#ifdef HAVE_ELEMENTARY_COCOA
+        if (cur->cocoa.win)
+          ecore_cocoa_window_cursor_set(cur->cocoa.win, cur->cocoa.cursor);
+#endif
+
+#ifdef HAVE_ELEMENTARY_WIN32
+        if (cur->win32.win)
+          ecore_win32_window_cursor_set(cur->win32.win, cur->win32.cursor);
 #endif
      }
    evas_event_thaw(cur->evas);
@@ -340,9 +377,19 @@ _elm_cursor_mouse_out(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_
         if (cur->x.win)
           ecore_x_window_cursor_set(cur->x.win, ECORE_X_CURSOR_X);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
         if (cur->wl.win)
-          ecore_wl_window_cursor_default_restore(cur->wl.win);
+          ecore_wl2_window_cursor_from_name_set(cur->wl.win, NULL);
+#endif
+
+#ifdef HAVE_ELEMENTARY_COCOA
+        if (cur->cocoa.win)
+          ecore_cocoa_window_cursor_set(cur->cocoa.win, ECORE_COCOA_CURSOR_DEFAULT);
+#endif
+
+#ifdef HAVE_ELEMENTARY_WIN32
+        if (cur->win32.win)
+          ecore_win32_window_cursor_set(cur->win32.win, ecore_win32_cursor_shaped_new(ECORE_WIN32_CURSOR_SHAPE_ARROW));
 #endif
      }
    evas_event_thaw(cur->evas);
@@ -354,7 +401,7 @@ _elm_cursor_del(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj
    elm_object_cursor_unset(obj);
 }
 
-#ifdef HAVE_ELEMENTARY_X
+#if defined(HAVE_ELEMENTARY_X) || defined(HAVE_ELEMENTARY_COCOA) || defined(HAVE_ELEMENTARY_WIN32)
 static int
 _elm_cursor_strcmp(const void *data1, const void *data2)
 {
@@ -404,10 +451,10 @@ _elm_cursor_cur_set(Elm_Cursor *cur)
              if (cur->x.win)
                {
                   struct _Cursor_Id *cur_id;
-                  
+
                   cur_id = bsearch(&(cur->cursor_name), _cursors, _cursors_count,
                                    sizeof(struct _Cursor_Id), _elm_cursor_strcmp);
-                  
+
                   if (!cur_id)
                     {
                        INF("X cursor couldn't be found: %s. Using default.",
@@ -418,8 +465,47 @@ _elm_cursor_cur_set(Elm_Cursor *cur)
                     cur->x.cursor = ecore_x_cursor_shape_get(cur_id->id);
                }
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+
+#ifdef HAVE_ELEMENTARY_COCOA
+             cur->cocoa.win = elm_win_cocoa_window_get(top);
+             if (cur->cocoa.win)
+               {
+                  struct _Cursor_Id *cur_id;
+
+                  cur_id = bsearch(&(cur->cursor_name), _cursors, _cursors_count,
+                                   sizeof(struct _Cursor_Id), _elm_cursor_strcmp);
+                  if (!cur_id)
+                    {
+                       INF("Cocoa Cursor couldn't be found: %s. Using default...",
+                           cur->cursor_name);
+                       cur->cocoa.cursor = ECORE_COCOA_CURSOR_DEFAULT;
+                    }
+                  else
+                    cur->cocoa.cursor = cur_id->cid;
+               }
+#endif
+
+#ifdef HAVE_ELEMENTARY_WL2
              cur->wl.win = elm_win_wl_window_get(top);
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+             cur->win32.win = elm_win_win32_window_get(top);
+             if (cur->win32.win)
+               {
+                  struct _Cursor_Id *cur_id;
+
+                  cur_id = bsearch(&(cur->cursor_name), _cursors, _cursors_count,
+                                   sizeof(struct _Cursor_Id), _elm_cursor_strcmp);
+
+                  if (!cur_id)
+                    {
+                       INF("Win32 X cursor couldn't be found: %s. Using default.",
+                           cur->cursor_name);
+                       cur->win32.cursor = ecore_win32_cursor_shaped_new(ECORE_WIN32_CURSOR_SHAPE_ARROW);
+                    }
+                  else
+                    cur->win32.cursor = (Ecore_Win32_Cursor *)ecore_win32_cursor_x11_shaped_get(cur_id->id);
+               }
 #endif
           }
      }
@@ -455,7 +541,7 @@ _elm_cursor_cur_set(Elm_Cursor *cur)
  * @param cursor the cursor name to be used.
  *
  * @internal
- * @ingroup Cursors
+ * @ingroup Elm_Cursors
  */
 void
 elm_object_sub_cursor_set(Evas_Object *eventarea, Evas_Object *owner, const char *cursor)
@@ -541,9 +627,17 @@ elm_object_cursor_unset(Evas_Object *obj)
         else if (cur->x.win)
           ecore_x_window_cursor_set(cur->x.win, ECORE_X_CURSOR_X);
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_COCOA
+        else if (cur->cocoa.win)
+          ecore_cocoa_window_cursor_set(cur->cocoa.win, ECORE_COCOA_CURSOR_DEFAULT);
+#endif
+#ifdef HAVE_ELEMENTARY_WL2
         else if (cur->wl.win)
-          ecore_wl_window_cursor_default_restore(cur->wl.win);
+          ecore_wl2_window_cursor_from_name_set(cur->wl.win, NULL);
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+        else
+          ecore_win32_window_cursor_set(cur->win32.win, ecore_win32_cursor_shaped_new(ECORE_WIN32_CURSOR_SHAPE_ARROW));
 #endif
      }
 
@@ -621,3 +715,4 @@ elm_object_cursor_theme_search_enabled_get(const Evas_Object *obj)
    ELM_CURSOR_GET_OR_RETURN(cur, obj, EINA_FALSE);
    return cur->theme_search;
 }
+

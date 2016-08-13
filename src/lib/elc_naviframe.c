@@ -469,7 +469,7 @@ _elm_naviframe_item_elm_widget_item_part_text_set(Eo *eo_it EINA_UNUSED,
           elm_object_signal_emit(VIEW(it), "elm,state,title_label,hide", "elm");
         elm_object_part_text_set(VIEW(it), TITLE_PART, label);
      }
-   else if (!strcmp("subtitle", part))
+   else if ((!strcmp(part, "subtitle")) || (!strcmp(part, SUBTITLE_PART)))
      {
         eina_stringshare_replace(&nit->subtitle_label, label);
         if (label)
@@ -507,6 +507,16 @@ _elm_naviframe_item_elm_widget_item_part_text_set(Eo *eo_it EINA_UNUSED,
    /* access */
    if (_elm_config->access_mode)
      _access_obj_process(nit, EINA_TRUE);
+
+   memset(buf, 0x0, sizeof(buf));
+   if (nit->title_label)
+     strncat(buf, nit->title_label, sizeof(buf) - 1);
+   if (nit->subtitle_label)
+     {
+        if (nit->title_label) strncat(buf, " ", 1);
+        strncat(buf, nit->subtitle_label, sizeof(buf) - strlen(buf) - 2);
+     }
+   eo_do(VIEW(it), elm_interface_atspi_accessible_name_set(buf));
 
    elm_layout_sizing_eval(WIDGET(nit));
 }
@@ -730,7 +740,7 @@ _item_title_icon_unset(Elm_Naviframe_Item_Data *it)
 static void
 _part_aliasing_eval(const char **part)
 {
-   if (!*part || !strcmp("default", *part))
+   if (!*part || !strcmp(*part, "default"))
      *part = CONTENT_PART;
    else if (!strcmp(*part, "prev_btn"))
      *part = PREV_BTN_PART;
@@ -811,7 +821,7 @@ _elm_naviframe_item_elm_widget_item_part_content_set(Eo *eo_nit EINA_UNUSED,
    _part_aliasing_eval(&part);
 
    //specified parts
-   if (!part || !strcmp(CONTENT_PART, part))
+   if (!strcmp(part, CONTENT_PART))
      _item_content_set(nit, content);
    else if (!strcmp(part, PREV_BTN_PART))
      _item_title_prev_btn_set(nit, content);
@@ -833,7 +843,7 @@ _elm_naviframe_item_elm_widget_item_part_content_get(Eo *eo_nit EINA_UNUSED,
    _part_aliasing_eval(&part);
 
    //specified parts
-   if (!part || !strcmp(CONTENT_PART, part))
+   if (!strcmp(part, CONTENT_PART))
      return nit->content;
    else if (!strcmp(part, PREV_BTN_PART))
      return nit->title_prev_btn;
@@ -887,7 +897,7 @@ _elm_naviframe_item_elm_widget_item_part_content_unset(Eo *eo_nit EINA_UNUSED,
    _part_aliasing_eval(&part);
 
    //specified parts
-   if (!part || !strcmp(CONTENT_PART, part))
+   if (!strcmp(part, CONTENT_PART))
      o = _item_content_unset(nit);
    else if (!strcmp(part, PREV_BTN_PART))
      o = _item_title_prev_btn_unset(nit);
@@ -915,7 +925,7 @@ _elm_naviframe_item_elm_widget_item_signal_emit(Eo *eo_it EINA_UNUSED,
 EOLIAN static void
 _elm_naviframe_elm_layout_sizing_eval(Eo *obj, Elm_Naviframe_Data *sd)
 {
-   Evas_Coord minw = -1, minh = -1;
+   Evas_Coord minw = 0, minh = 0;
    Elm_Naviframe_Item_Data *it, *top;
    Evas_Coord x, y, w, h;
 
@@ -1029,7 +1039,7 @@ _elm_naviframe_elm_layout_text_set(Eo *obj, Elm_Naviframe_Data *sd EINA_UNUSED, 
 }
 
 EOLIAN static const char*
-_elm_naviframe_elm_layout_text_get(const Eo *obj, Elm_Naviframe_Data *sd EINA_UNUSED, const char *part)
+_elm_naviframe_elm_layout_text_get(Eo *obj, Elm_Naviframe_Data *sd EINA_UNUSED, const char *part)
 {
    Elm_Object_Item *it = elm_naviframe_top_item_get(obj);
    if (!it) return NULL;
@@ -1221,6 +1231,10 @@ _item_new(Evas_Object *obj,
 
    if (!elm_widget_sub_object_add(obj, VIEW(it)))
      ERR("could not add %p as sub object of %p", VIEW(it), obj);
+
+   eo_do(VIEW(it),
+         elm_interface_atspi_accessible_role_set(ELM_ATSPI_ROLE_PAGE_TAB),
+         elm_interface_atspi_accessible_name_set((char*)title_label));
 
    evas_object_event_callback_add
      (VIEW(it), EVAS_CALLBACK_CHANGED_SIZE_HINTS,
@@ -1497,7 +1511,7 @@ _elm_naviframe_elm_widget_event(Eo *obj, Elm_Naviframe_Data *sd EINA_UNUSED, Eva
 
    if (type != EVAS_CALLBACK_KEY_DOWN) return EINA_FALSE;
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return EINA_FALSE;
-   if (!_elm_config_key_binding_call(obj, ev, key_actions)) return EINA_FALSE;
+   if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions)) return EINA_FALSE;
 
    ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
    return EINA_TRUE;

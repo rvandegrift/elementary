@@ -58,11 +58,13 @@ struct _Elm_Tooltip
      } rel_pos;
    Elm_Tooltip_Orient       orient; /** orientation for tooltip */
    int                      move_freeze;
+   unsigned short           ref;
 
    double                   hide_timeout; /* from theme */
    Eina_Bool                visible_lock:1;
    Eina_Bool                changed_style:1;
    Eina_Bool                free_size : 1;
+   Eina_Bool                unset_me : 1;
 };
 
 static void _elm_tooltip_reconfigure(Elm_Tooltip *tt);
@@ -73,6 +75,7 @@ static void _elm_tooltip_hide_anim_stop(Elm_Tooltip *tt);
 static void _elm_tooltip_show_timer_stop(Elm_Tooltip *tt);
 static void _elm_tooltip_hide(Elm_Tooltip *tt);
 static void _elm_tooltip_data_clean(Elm_Tooltip *tt);
+static void _elm_tooltip_unset(Elm_Tooltip *tt);
 
 static void
 _elm_tooltip_content_changed_hints_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
@@ -153,6 +156,7 @@ _elm_tooltip_show(Elm_Tooltip *tt)
    else
       tt->tooltip = edje_object_add(tt->evas);
    if (!tt->tooltip) return;
+   evas_object_pass_events_set(tt->tooltip, EINA_TRUE);
 
    if (tt->free_size)
      evas_object_layer_set(tt->tooltip, ELM_OBJECT_LAYER_TOOLTIP);
@@ -343,7 +347,6 @@ _elm_tooltip_reconfigure(Elm_Tooltip *tt)
              if (tt->hide_timeout < 0.0) tt->hide_timeout = 0.0;
           }
 
-        evas_object_pass_events_set(tt->tooltip, EINA_TRUE);
         tt->changed_style = EINA_FALSE;
         if (tt->tooltip)
           edje_object_part_swallow(tt->tooltip, "elm.swallow.content",
@@ -354,7 +357,15 @@ _elm_tooltip_reconfigure(Elm_Tooltip *tt)
 
    if (!tt->content)
      {
+        tt->ref++;
         tt->content = tt->func((void *)tt->data, tt->owner, tt->tt_win ? : tt->owner);
+        tt->ref--;
+        if (tt->unset_me)
+          {
+             _elm_tooltip_unset(tt);
+             return;
+          }
+
         if (!tt->content)
           {
              WRN("could not create tooltip content!");
@@ -366,7 +377,6 @@ _elm_tooltip_reconfigure(Elm_Tooltip *tt)
              tt->tooltip = NULL;
              return;
           }
-        evas_object_pass_events_set(tt->content, EINA_TRUE);
         edje_object_part_swallow
           (tt->tooltip, "elm.swallow.content", tt->content);
         evas_object_event_callback_add(tt->content, EVAS_CALLBACK_CHANGED_SIZE_HINTS,
@@ -697,6 +707,11 @@ static void _elm_tooltip_obj_free_cb(void *data, Evas *e  EINA_UNUSED, Evas_Obje
 static void
 _elm_tooltip_unset(Elm_Tooltip *tt)
 {
+   if (tt->ref > 0)
+     {
+        tt->unset_me = EINA_TRUE;
+        return;
+     }
    tt->visible_lock = EINA_FALSE;
    _elm_tooltip_hide(tt);
    _elm_tooltip_data_clean(tt);
@@ -887,7 +902,7 @@ elm_tooltip_theme(Elm_Tooltip *tt)
  *        given @a data, and @c event_info is NULL.
  *
  * @internal
- * @ingroup Tooltips
+ * @ingroup Elm_Tooltips
  */
 void
 elm_object_sub_tooltip_content_cb_set(Evas_Object *eventarea, Evas_Object *owner, Elm_Tooltip_Content_Cb func, const void *data, Evas_Smart_Cb del_cb)

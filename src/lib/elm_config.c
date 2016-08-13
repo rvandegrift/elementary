@@ -9,7 +9,7 @@
 EAPI int ELM_EVENT_CONFIG_ALL_CHANGED = 0;
 
 Elm_Config *_elm_config = NULL;
-char *_elm_profile = NULL;
+static char *_elm_profile = NULL;
 static Eet_Data_Descriptor *_config_edd = NULL;
 static Eet_Data_Descriptor *_config_font_overlay_edd = NULL;
 static Eet_Data_Descriptor *_config_color_edd = NULL;
@@ -20,16 +20,26 @@ static Eet_Data_Descriptor *_config_binding_key_edd = NULL;
 static Eet_Data_Descriptor *_config_binding_modifier_edd = NULL;
 const char *_elm_preferred_engine = NULL;
 const char *_elm_accel_preference = NULL;
-const char *_elm_gl_preference = NULL;
-Eina_List  *_font_overlays_del = NULL;
-Eina_List  *_color_overlays_del = NULL;
+static const char *_elm_gl_preference = NULL;
+static Eina_List  *_font_overlays_del = NULL;
+static Eina_List  *_color_overlays_del = NULL;
 
 static Ecore_Poller *_elm_cache_flush_poller = NULL;
 static void _elm_config_key_binding_hash(void);
+
+Eina_Bool _config_profile_lock = EINA_FALSE;
 static Ecore_Timer *_config_change_delay_timer = NULL;
-Eio_Monitor *_eio_monitor = NULL;
+static Ecore_Timer *_config_profile_change_delay_timer = NULL;
+static Ecore_Event_Handler *_monitor_file_created_handler = NULL;
+static Ecore_Event_Handler *_monitor_directory_created_handler = NULL;
+static Eio_Monitor *_eio_config_monitor = NULL;
+static Eio_Monitor *_eio_profile_monitor = NULL;
 
 Eina_Hash *_elm_key_bindings = NULL;
+
+#ifdef HAVE_ELEMENTARY_WL2
+Ecore_Wl2_Display *_elm_wl_display = NULL;
+#endif
 
 const char *_elm_engines[] = {
    "software_x11",
@@ -53,8 +63,26 @@ const char *_elm_engines[] = {
    declare it both here and in the (default) theme */
 static const Elm_Text_Class _elm_text_classes[] = {
    {"button", "Button"},
+   {"calendar_year_text", "Year Text in Title Area"},
+   {"calendar_month_text", "Month Text in Title Area"},
+   {"calendar_weekday_text", "Weekday Text"},
+   {"calendar_day_text", "Day Text"},
+   {"calendar_day_text_holiday", "Holiday Text"},
+   {"calendar_day_text_today", "Today Text"},
+   {"calendar_day_text_disabled", "Disabled Day Text"},
+   {"datetime_separator_text", "Datetime Separator Text"},
+   {"datetime_separator_text_disabled", "Datetime Separator Disabled Text"},
    {"label", "Label"},
+   {"entry_text", "Entry Text"},
+   {"entry_text_disabled", "Entry Disabled Text"},
+   {"entry_guide_text", "Entry Guide Text"},
    {"entry", "Entry"},
+   {"index_highlight_text," "Index Highlight Text"},
+   {"index_item_text," "Index Items Text"},
+   {"index_item_text_selected," "Index Selected Items Text"},
+   {"multibuttonentry_item_text", "Multibuttonentry Items"},
+   {"multibuttonentry_item_text_pressed", "Multibuttonentry Pressed Items"},
+   {"multibuttonentry_item_text_disabled", "Multibuttonentry Disabled Items"},
    {"title_bar", "Title Bar"},
    {"list_item", "List Items"},
    {"grid_item", "Grid Items"},
@@ -70,11 +98,29 @@ static const Elm_Color_Class _elm_color_classes[] = {
    {"button_text_disabled", "Button Disabled Text"},
    {"button_text_anchor", "Anchor Button Text"},
    {"button_text_anchor_disabled", "Anchor Button Disabled Text"},
+   {"calendar_year_text", "Year Text in Title Area"},
+   {"calendar_month_text", "Month Text in Title Area"},
+   {"calendar_weekday_text", "Weekday Text"},
+   {"calendar_day_text", "Day Text"},
+   {"calendar_day_text_holiday", "Holiday Text"},
+   {"calendar_day_text_today", "Today Text"},
+   {"calendar_day_text_disabled", "Disabled Day Text"},
+   {"calendar_day_selected", "Selected Day Effect"},
+   {"calendar_day_highlighted", "Highlighted Day Effect"},
+   {"calendar_day_checked", "Checked Day Effect"},
+   {"datetime_bg", "Datetime Background"},
+   {"datetime_separator_text", "Datetime Separator Text"},
+   {"datetime_separator_text_disabled", "Datetime Separator Disabled Text"},
    {"hoversel_item_active", "Hoversel Item Text"},
    {"hoversel_text_disabled", "Hoversel Item Disabled Text"},
    {"radio_text", "Radio Text"},
    {"frame", "Frame Text"},
-   {"entry", "Entry Text"},
+   {"entry_text", "Entry Text"},
+   {"entry_text_disabled", "Entry Disabled Text"},
+   {"entry_guide_text", "Entry Guide Text"},
+   {"entry_cursor", "Entry Cursor"},
+   {"entry_selection_handler", "Entry Selection Handler"},
+   {"entry_scrollframe_base", "Entry Scrollframe Base"},
    {"check_text", "Check Text"},
    {"check_on_text", "Check On Text"},
    {"check_off_text", "Check Off Text"},
@@ -85,6 +131,11 @@ static const Elm_Color_Class _elm_color_classes[] = {
    {"grid_item", "Grid Item Text"},
    {"grid_item_disabled", "Grid Item Disabled Text"},
    {"grid_item_selected", "Grid Item Selected Text"},
+   {"index_bg", "Index Background"},
+   {"index_item_bg", "Index Item Background"},
+   {"index_highlight_text," "Index Highlight Text"},
+   {"index_item_text," "Index Items Text"},
+   {"index_item_text_selected," "Index Selected Items Text"},
    {"toolbar_item", "Toolbar Item Text"},
    {"toolbar_item_disabled", "Toolbar Item Disabled Text"},
    {"toolbar_item_selected", "Toolbar Item Selected Text"},
@@ -92,6 +143,7 @@ static const Elm_Color_Class _elm_color_classes[] = {
    {"slider_text", "Slider Text"},
    {"slider_text_disabled", "Slider Disabled Text"},
    {"slider_indicator", "Slider Indicator Text"},
+   {"spinner_bg", "Spinner Background"},
    {"progressbar_text", "Progressbar Text"},
    {"progressbar_text_disabled", "Progressbar Disabled Text"},
    {"progressbar_status", "Progressbar Status Text"},
@@ -99,6 +151,12 @@ static const Elm_Color_Class _elm_color_classes[] = {
    {"bubble_info", "Bubble Info Text"},
    {"menu_item_active", "Menu Item Text"},
    {"menu_item_disabled", "Menu Item Disabled Text"},
+   {"multibuttonentry_bg", "Multibuttonentry Background"},
+   {"multibuttonentry_item_bg", "Multibuttonentry Item Background"},
+   {"multibuttonentry_item_bg_selected", "Multibuttonentry Item Selected Background"},
+   {"multibuttonentry_item_text", "Multibuttonentry Item Text"},
+   {"multibuttonentry_item_text_pressed", "Multibuttonentry Item Pressed Text"},
+   {"multibuttonentry_item_text_disabled", "Multibuttonentry Item Disabled Text"},
    {"border_title", "Border Title Text"},
    {"border_title_active", "Border Title Active Text"},
    {"datetime_text", "Datetime Text"},
@@ -371,6 +429,7 @@ _desc_init(void)
    ELM_CONFIG_VAL(D, T, focus_highlight_clip_disable, T_UCHAR);
    ELM_CONFIG_VAL(D, T, focus_move_policy, T_UCHAR);
    ELM_CONFIG_VAL(D, T, focus_autoscroll_mode, T_UCHAR);
+   ELM_CONFIG_VAL(D, T, context_menu_disabled, T_UCHAR);
    ELM_CONFIG_VAL(D, T, slider_indicator_visible_mode, T_INT);
    ELM_CONFIG_VAL(D, T, item_select_on_focus_disable, T_UCHAR);
    ELM_CONFIG_VAL(D, T, first_item_focus_on_first_focus_in, T_UCHAR);
@@ -435,6 +494,8 @@ _desc_init(void)
    ELM_CONFIG_VAL(D, T, win_auto_focus_animate, T_UCHAR);
    ELM_CONFIG_VAL(D, T, transition_duration_factor, T_DOUBLE);
    ELM_CONFIG_VAL(D, T, naviframe_prev_btn_auto_pushed, T_UCHAR);
+   ELM_CONFIG_VAL(D, T, popup_horizontal_align, T_DOUBLE);
+   ELM_CONFIG_VAL(D, T, popup_vertical_align, T_DOUBLE);
 #undef T
 #undef D
 #undef T_INT
@@ -610,6 +671,293 @@ _elm_config_user_dir_snprintf(char       *dst,
    return 0;
 }
 
+typedef struct _Elm_Config_Derived          Elm_Config_Derived;
+typedef struct _Elm_Config_Derived_Profile  Elm_Config_Derived_Profile;
+
+struct _Elm_Config_Derived
+{
+   Eina_List *profiles;
+};
+
+struct _Elm_Config_Derived_Profile
+{
+   const char *profile;
+   const char *derive_options;
+};
+
+static Eet_Data_Descriptor *_config_derived_edd = NULL;
+static Eet_Data_Descriptor *_config_derived_profile_edd = NULL;
+
+static void
+_elm_config_profile_derived_init(void)
+{
+   Eet_Data_Descriptor_Class eddc;
+
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Elm_Config_Derived);
+   eddc.func.str_direct_alloc = NULL;
+   eddc.func.str_direct_free = NULL;
+   _config_derived_edd = eet_data_descriptor_file_new(&eddc);
+
+   memset(&eddc, 0, sizeof(eddc)); /* just in case... */
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Elm_Config_Derived_Profile);
+   eddc.func.str_direct_alloc = NULL;
+   eddc.func.str_direct_free = NULL;
+   _config_derived_profile_edd = eet_data_descriptor_file_new(&eddc);
+
+#define T        Elm_Config_Derived_Profile
+#define D        _config_derived_profile_edd
+   ELM_CONFIG_VAL(D, T, profile, EET_T_STRING);
+   ELM_CONFIG_VAL(D, T, derive_options, EET_T_STRING);
+#undef T
+#undef D
+
+#define T        Elm_Config_Derived
+#define D        _config_derived_edd
+   ELM_CONFIG_LIST(D, T, profiles, _config_derived_profile_edd);
+#undef T
+#undef D
+}
+
+static void
+_elm_config_profile_derived_shutdown(void)
+{
+   if (_config_derived_profile_edd)
+     {
+        eet_data_descriptor_free(_config_derived_profile_edd);
+        _config_derived_profile_edd = NULL;
+     }
+   if (_config_derived_edd)
+     {
+        eet_data_descriptor_free(_config_derived_edd);
+        _config_derived_edd = NULL;
+     }
+}
+
+static Elm_Config_Derived *
+_elm_config_derived_load(const char *profile)
+{
+   char buf[PATH_MAX];
+   Eet_File *ef;
+   Elm_Config_Derived *derived;
+
+   if (!profile) profile = _elm_profile;
+   _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/%s/derived.cfg",
+                                 profile);
+   ef = eet_open(buf, EET_FILE_MODE_READ);
+   if (ef)
+     {
+        derived = eet_data_read(ef, _config_derived_edd, "config");
+        eet_close(ef);
+        if (derived) return derived;
+     }
+   snprintf(buf, sizeof(buf), "%s/config/%s/derived.cfg",
+            _elm_data_dir, profile);
+   ef = eet_open(buf, EET_FILE_MODE_READ);
+   if (ef)
+     {
+        derived = eet_data_read(ef, _config_derived_edd, "config");
+        eet_close(ef);
+        if (derived) return derived;
+     }
+   return NULL;
+}
+
+static void
+_elm_config_profile_derived_save(const char *profile, Elm_Config_Derived *derived)
+{
+   Eet_File *ef;
+   char buf[PATH_MAX], buf2[PATH_MAX];
+   int ret;
+
+   _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/%s",
+                                 profile ? profile : _elm_profile);
+   ecore_file_mkpath(buf);
+   _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/%s/derived.cfg.tmp",
+                                 profile ? profile : _elm_profile);
+   _elm_config_user_dir_snprintf(buf2, sizeof(buf2), "config/%s/derived.cfg",
+                                 profile ? profile : _elm_profile);
+   ef = eet_open(buf, EET_FILE_MODE_WRITE);
+   if (ef)
+     {
+        ret = eet_data_write(ef, _config_derived_edd, "config", derived, 1);
+        eet_close(ef);
+        if (ret)
+          {
+             ecore_file_mv(buf, buf2);
+          }
+        else
+          {
+             ERR("Error saving Elementary's derived configuration profile file");
+          }
+     }
+}
+
+static void
+_elm_config_derived_free(Elm_Config_Derived *derived)
+{
+   Elm_Config_Derived_Profile *dp;
+
+   if (!derived) return;
+   EINA_LIST_FREE(derived->profiles, dp)
+     {
+        eina_stringshare_del(dp->profile);
+        eina_stringshare_del(dp->derive_options);
+        free(dp);
+     }
+   free(derived);
+}
+
+static void
+_elm_config_derived_option_op_apply(Elm_Config *cfg, const char *op, const char *params)
+{
+   if (!strcmp(op, "scale-mul"))
+     {
+        int multiplier = atoi(params);
+        if (multiplier > 0)
+          {
+             cfg->scale = cfg->scale * (((double)multiplier) / 100.0);
+          }
+     }
+   // Add more derivation commands here
+}
+
+static void
+_elm_config_derived_option_apply(Elm_Config *cfg, const char *option)
+{
+   const char *p;
+   char *buf = alloca(strlen(option) + 1);
+   char *bp = buf;
+
+   p = option;
+   bp = buf;
+   for (;;)
+     {
+        if ((*p == 0) || (*p == ' '))
+          {
+             if (*p == ' ') p++;
+             *bp = 0;
+             _elm_config_derived_option_op_apply(cfg, buf, p);
+             return;
+          }
+        else
+          {
+             *bp = *p;
+             bp++;
+          }
+        if (*p == 0) break;
+        p++;
+     }
+}
+
+static void
+_elm_config_derived_apply(Elm_Config *cfg, const char *derive_options)
+{
+   // derive_options = "option1 param param2 ...; option2 param1 ..."
+   const char *p;
+   char *buf = alloca(strlen(derive_options) + 1);
+   char *bp = buf;
+
+   p = derive_options;
+   for (;;)
+     {
+        if ((*p == 0) || (*p == ';'))
+          {
+             if (*p == ';') p++;
+             *bp = 0;
+             _elm_config_derived_option_apply(cfg, buf);
+             bp = buf;
+          }
+        else
+          {
+             *bp = *p;
+             bp++;
+          }
+        if (*p == 0) break;
+        p++;
+     }
+}
+
+static void
+_elm_config_derived_save(Elm_Config *cfg, Elm_Config_Derived *derived)
+{
+   Elm_Config_Derived_Profile *dp;
+   Eina_List *l;
+
+   if (!derived) return;
+   EINA_LIST_FOREACH(derived->profiles, l, dp)
+     {
+        if ((dp->profile) && (dp->derive_options))
+          {
+             Elm_Config *cfg2;
+
+             cfg2 = malloc(sizeof(Elm_Config));
+             if (cfg2)
+               {
+                  memcpy(cfg2, cfg, sizeof(Elm_Config));
+                  _elm_config_derived_apply(cfg2, dp->derive_options);
+                  _elm_config_save(cfg2, dp->profile);
+                  free(cfg2);
+               }
+          }
+     }
+}
+
+EAPI void
+elm_config_profile_derived_add(const char *profile, const char *derive_options)
+{
+   Elm_Config_Derived *derived;
+
+   derived = _elm_config_derived_load(_elm_profile);
+   if (!derived) derived = calloc(1, sizeof(Elm_Config_Derived));
+   if (derived)
+     {
+        Elm_Config_Derived_Profile *dp = calloc(1, sizeof(Elm_Config_Derived_Profile));
+
+        if (dp)
+          {
+             dp->profile = eina_stringshare_add(profile);
+             dp->derive_options = eina_stringshare_add(derive_options);
+             derived->profiles = eina_list_append(derived->profiles, dp);
+             _elm_config_profile_derived_save(_elm_profile, derived);
+             _elm_config_derived_save(_elm_config, derived);
+          }
+        _elm_config_derived_free(derived);
+     }
+}
+
+EAPI void
+elm_config_profile_derived_del(const char *profile)
+{
+   Elm_Config_Derived *derived;
+   Elm_Config_Derived_Profile *dp;
+   Eina_List *l;
+
+   if (!profile) return;
+   derived = _elm_config_derived_load(_elm_profile);
+   if (derived)
+     {
+        EINA_LIST_FOREACH(derived->profiles, l, dp)
+          {
+             if ((dp->profile) && (!strcmp(dp->profile, profile)))
+               {
+                  char buf[PATH_MAX];
+
+                  _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/%s",
+                                                profile);
+                  ecore_file_recursive_rm(buf);
+                  derived->profiles = eina_list_remove_list(derived->profiles, l);
+                  eina_stringshare_del(dp->profile);
+                  eina_stringshare_del(dp->derive_options);
+                  free(dp);
+                  _elm_config_profile_derived_save(_elm_profile, derived);
+                  _elm_config_derived_free(derived);
+                  return;
+               }
+          }
+        _elm_config_derived_free(derived);
+     }
+}
+
 const char *
 _elm_config_profile_dir_get(const char *prof,
                             Eina_Bool   is_user)
@@ -656,12 +1004,12 @@ void _elm_config_access_set(Eina_Bool is_access)
    if (!is_access) _elm_access_shutdown();
 }
 
-Eina_Bool _elm_config_atspi_mode_get(void)
+static Eina_Bool _elm_config_atspi_mode_get(void)
 {
    return _elm_config->atspi_mode;
 }
 
-void _elm_config_atspi_mode_set(Eina_Bool is_enabled)
+static void _elm_config_atspi_mode_set(Eina_Bool is_enabled)
 {
    is_enabled = !!is_enabled;
    if (_elm_config->atspi_mode == is_enabled) return;
@@ -671,12 +1019,12 @@ void _elm_config_atspi_mode_set(Eina_Bool is_enabled)
    else _elm_atspi_bridge_init();
 }
 
-Eina_Bool _elm_config_selection_unfocused_clear_get(void)
+static Eina_Bool _elm_config_selection_unfocused_clear_get(void)
 {
    return _elm_config->selection_clear_enable;
 }
 
-void _elm_config_selection_unfocused_clear_set(Eina_Bool enabled)
+static void _elm_config_selection_unfocused_clear_set(Eina_Bool enabled)
 {
    enabled = !!enabled;
    if (_elm_config->selection_clear_enable == enabled) return;
@@ -998,7 +1346,7 @@ _elm_config_colors_free(const char *palette_name)
 }
 
 Eina_List *
-_elm_config_profiles_list(void)
+_elm_config_profiles_list(Eina_Bool hide_profiles)
 {
    Eina_File_Direct_Info *info;
    Eina_List *flist = NULL;
@@ -1010,8 +1358,7 @@ _elm_config_profiles_list(void)
    len = _elm_config_user_dir_snprintf(buf, sizeof(buf), "config");
 
    file_it = eina_file_stat_ls(buf);
-   if (!file_it)
-     goto sys;
+   if (!file_it) goto sys;
 
    buf[len] = '/';
    len++;
@@ -1020,15 +1367,15 @@ _elm_config_profiles_list(void)
 
    EINA_ITERATOR_FOREACH(file_it, info)
      {
-        if (info->name_length >= len)
-          continue;
+        if (info->name_length >= len) continue;
+        if ((hide_profiles) && (info->path[info->name_start] == '.')) continue;
 
         if (info->type == EINA_FILE_DIR)
           {
              flist =
                eina_list_sorted_insert(flist, _sort_files_cb,
-                                       eina_stringshare_add(info->path +
-                                                            info->name_start));
+                                       eina_stringshare_add
+                                         (info->path + info->name_start));
           }
      }
 
@@ -1040,8 +1387,7 @@ sys:
                            sizeof("config") - 1);
 
    file_it = eina_file_stat_ls(buf);
-   if (!file_it)
-     goto list_free;
+   if (!file_it) goto list_free;
 
    buf[len] = '/';
    len++;
@@ -1049,26 +1395,26 @@ sys:
    len = sizeof(buf) - len;
    EINA_ITERATOR_FOREACH(file_it, info)
      {
-        if (info->name_length >= len)
-          continue;
+        if (info->name_length >= len) continue;
+        if ((hide_profiles) && (info->path[info->name_start] == '.')) continue;
 
         switch (info->type)
           {
            case EINA_FILE_DIR:
-           {
-              const Eina_List *l;
-              const char *tmp;
+               {
+                  const Eina_List *l;
+                  const char *tmp;
 
-              EINA_LIST_FOREACH(flist, l, tmp)
-                if (!strcmp(info->path + info->name_start, tmp))
-                  break;
-
-              if (!l)
-                flist =
-                  eina_list_sorted_insert(flist, _sort_files_cb,
-                                          eina_stringshare_add(info->path +
-                                                               info->name_start));
-           }
+                  EINA_LIST_FOREACH(flist, l, tmp)
+                    {
+                       if (!strcmp(info->path + info->name_start, tmp)) break;
+                    }
+                  if (!l)
+                    flist = eina_list_sorted_insert(flist, _sort_files_cb,
+                                                    eina_stringshare_add
+                                                    (info->path +
+                                                     info->name_start));
+               }
            break;
 
            default:
@@ -1079,9 +1425,7 @@ sys:
    return flist;
 
 list_free:
-   EINA_LIST_FREE(flist, dir)
-     eina_stringshare_del(dir);
-
+   EINA_LIST_FREE(flist, dir) eina_stringshare_del(dir);
    return NULL;
 }
 
@@ -1125,11 +1469,11 @@ _profile_fetch_from_conf(void)
                        memcpy(_elm_profile, p, len);
                        _elm_profile[len] = 0;
                        free(p);
+                       p = strchr(_elm_profile, '/');
+                       if (p) *p = 0;
                     }
                   else free(p);
                   eet_close(ef);
-                  p = strchr(_elm_profile, '/');
-                  if (p) *p = 0;
                   return;
                }
              eet_close(ef);
@@ -1277,6 +1621,11 @@ _config_user_load(void)
    Eet_File *ef;
    char buf[PATH_MAX];
 
+   _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/%s",
+                          _elm_profile);
+   if (_eio_config_monitor) eio_monitor_del(_eio_config_monitor);
+   _eio_config_monitor = eio_monitor_add(buf);
+
    _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/%s/base.cfg",
                           _elm_profile);
 
@@ -1410,6 +1759,7 @@ _config_load(void)
    _elm_config->longpress_timeout = 1.0;
    _elm_config->effect_enable = EINA_TRUE;
    _elm_config->desktop_entry = EINA_FALSE;
+   _elm_config->context_menu_disabled = EINA_FALSE;
    _elm_config->is_mirrored = EINA_FALSE; /* Read sys value in env_get() */
    _elm_config->password_show_last = EINA_FALSE;
    _elm_config->password_show_last_timeout = 2.0;
@@ -1464,46 +1814,8 @@ _config_load(void)
    _elm_config->gl_stencil = 0;
    _elm_config->transition_duration_factor = 1.0;
    _elm_config->naviframe_prev_btn_auto_pushed = EINA_TRUE;
-}
-
-static void
-_config_flush_load(void)
-{
-   Elm_Config *cfg = NULL;
-   Eet_File *ef;
-   char buf[PATH_MAX];
-
-   _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/flush.cfg");
-
-   ef = eet_open(buf, EET_FILE_MODE_READ);
-   if (ef)
-     {
-        cfg = eet_data_read(ef, _config_edd, "config");
-        eet_close(ef);
-     }
-
-   if (cfg)
-     {
-        size_t len;
-
-        len = _elm_config_user_dir_snprintf(buf, sizeof(buf), "themes/");
-        if (len + 1 < sizeof(buf))
-          ecore_file_mkpath(buf);
-
-        _elm_config = cfg;
-
-        if ((_elm_config->config_version >> ELM_CONFIG_VERSION_EPOCH_OFFSET) < ELM_CONFIG_EPOCH)
-           {
-              WRN("User's elementary config seems outdated and unusable. Fallback to load system config.");
-              _config_free(_elm_config);
-              _elm_config = NULL;
-           }
-        else
-          {
-             if (_elm_config->config_version < ELM_CONFIG_VERSION)
-               _config_update();
-          }
-     }
+   _elm_config->popup_horizontal_align = 0.5;
+   _elm_config->popup_vertical_align = 0.5;
 }
 
 static void
@@ -1513,7 +1825,7 @@ _config_flush_get(void)
    _color_overlays_cancel();
    _config_free(_elm_config);
    _elm_config = NULL;
-   _config_flush_load();
+   _config_load();
    _env_get();
    _config_apply();
    _config_sub_apply();
@@ -1593,8 +1905,9 @@ _elm_config_eet_close_error_get(Eet_File *ef,
 }
 
 static Eina_Bool
-_elm_config_profile_save(void)
+_elm_config_profile_save(const char *profile)
 {
+   Elm_Config_Derived *derived;
    char buf[4096], buf2[4096];
    int ok = 0, ret;
    const char *err;
@@ -1634,6 +1947,13 @@ _elm_config_profile_save(void)
      }
 
    ecore_file_unlink(buf2);
+
+   derived = _elm_config_derived_load(profile ? profile : _elm_profile);
+   if (derived)
+     {
+        _elm_config_derived_save(_elm_config, derived);
+        _elm_config_derived_free(derived);
+     }
    return EINA_TRUE;
 
 err:
@@ -1642,7 +1962,7 @@ err:
 }
 
 Eina_Bool
-_elm_config_save(void)
+_elm_config_save(Elm_Config *cfg, const char *profile)
 {
    char buf[4096], buf2[4096];
    int ok = 0, ret;
@@ -1663,7 +1983,7 @@ _elm_config_save(void)
      }
 
    len = _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/%s",
-                                       _elm_profile);
+                                       profile ? profile : _elm_profile);
    if (len + 1 >= sizeof(buf))
      return EINA_FALSE;
 
@@ -1675,8 +1995,11 @@ _elm_config_save(void)
         return EINA_FALSE;
      }
 
-   if (!_elm_config_profile_save())
-     return EINA_FALSE;
+   if (!profile)
+     {
+        if (!_elm_config_profile_save(NULL))
+          return EINA_FALSE;
+     }
 
    buf[len] = '/';
    len++;
@@ -1697,7 +2020,7 @@ _elm_config_save(void)
    if (!ef)
      return EINA_FALSE;
 
-   ok = eet_data_write(ef, _config_edd, "config", _elm_config, 1);
+   ok = eet_data_write(ef, _config_edd, "config", cfg, 1);
    if (!ok)
      goto err;
 
@@ -1790,6 +2113,38 @@ _config_update(void)
    _elm_config->cursor_engine_only = 0;
    IFCFGEND
 
+   IFCFG(0x0007)
+   Elm_Config_Bindings_Widget *wb, *twb = NULL;
+   Eina_List *l;
+
+   EINA_LIST_FOREACH(tcfg->bindings, l, wb)
+     {
+        if (wb->name && !strcmp(wb->name, "Elm_Combobox"))
+          {
+             twb = wb;
+             break;
+          }
+     }
+   if (twb)
+     {
+        EINA_LIST_FOREACH(_elm_config->bindings, l, wb)
+           {
+              if (wb->name && !strcmp(wb->name, "Elm_Combobox"))
+                {
+                   // simply swap bindngs for Elm_Combobox with system ones
+                   Eina_List *tmp = wb->key_bindings;
+                   wb->key_bindings = twb->key_bindings;
+                   twb->key_bindings = tmp;
+                   break;
+                }
+           }
+     }
+   IFCFGEND
+
+   IFCFG(0x0008)
+   _elm_config->popup_horizontal_align = 0.5;
+   _elm_config->popup_vertical_align = 0.5;
+   IFCFGEND
    /**
     * Fix user config for current ELM_CONFIG_EPOCH here.
     **/
@@ -1804,7 +2159,7 @@ _config_update(void)
    _elm_config->config_version = ELM_CONFIG_VERSION;
    /* after updating user config, we must save */
    _config_free(tcfg);
-   _elm_config_save();
+   _elm_config_save(_elm_config, NULL);
 }
 
 static void
@@ -2091,6 +2446,9 @@ _env_get(void)
    s = getenv("ELM_ICON_SIZE");
    if (s) _elm_config->icon_size = atoi(s);
 
+   s = getenv("ELM_CONTEXT_MENU_DISABLED");
+   if (s) _elm_config->context_menu_disabled = !!atoi(s);
+
    s = getenv("ELM_LONGPRESS_TIMEOUT");
    if (s) _elm_config->longpress_timeout = _elm_atof(s);
    if (_elm_config->longpress_timeout < 0.0)
@@ -2142,6 +2500,11 @@ _env_get(void)
 
    s = getenv("ELM_TRANSITION_DURATION_FACTOR");
    if (s) _elm_config->transition_duration_factor = atof(s);
+
+   s = getenv("ELM_POPUP_HORIZONTAL_ALIGN");
+   if (s) _elm_config->popup_horizontal_align = _elm_atof(s);
+   s = getenv("ELM_POPUP_VERTICAL_ALIGN");
+   if (s) _elm_config->popup_vertical_align = _elm_atof(s);
 }
 
 static void
@@ -2160,7 +2523,7 @@ _elm_config_key_binding_hash(void)
      }
 }
 
-Eina_Bool
+static Eina_Bool
 _elm_config_modifier_check(const Evas_Modifier *m,
                            Eina_List *mod_list)
 {
@@ -2176,6 +2539,7 @@ _elm_config_modifier_check(const Evas_Modifier *m,
 
 Eina_Bool
 _elm_config_key_binding_call(Evas_Object *obj,
+                             const char *name,
                              const Evas_Event_Key_Down *ev,
                              const Elm_Action *actions)
 {
@@ -2183,7 +2547,7 @@ _elm_config_key_binding_call(Evas_Object *obj,
    Eina_List *binding_list, *l;
    int i = 0;
 
-   binding_list = eina_hash_find(_elm_key_bindings, elm_widget_type_get(obj));
+   binding_list = eina_hash_find(_elm_key_bindings, name);
 
    if (binding_list)
      {
@@ -2293,7 +2657,7 @@ elm_config_password_show_last_timeout_set(double password_show_last_timeout)
 EAPI Eina_Bool
 elm_config_save(void)
 {
-   return _elm_config_save();
+   return _elm_config_save(_elm_config, NULL);
 }
 
 EAPI void
@@ -2324,7 +2688,13 @@ elm_config_profile_dir_free(const char *p_dir)
 EAPI Eina_List *
 elm_config_profile_list_get(void)
 {
-   return _elm_config_profiles_list();
+   return _elm_config_profiles_list(EINA_TRUE);
+}
+
+EAPI Eina_List *
+elm_config_profile_list_full_get(void)
+{
+   return _elm_config_profiles_list(EINA_FALSE);
 }
 
 EAPI void
@@ -2336,11 +2706,37 @@ elm_config_profile_list_free(Eina_List *l)
      eina_stringshare_del(dir);
 }
 
+EAPI Eina_Bool
+elm_config_profile_exists(const char *profile)
+{
+   char buf[PATH_MAX], buf2[PATH_MAX];
+
+   if (!profile) return EINA_FALSE;
+
+   _elm_config_user_dir_snprintf(buf, sizeof(buf),
+                                 "config/%s/base.cfg", profile);
+   if (ecore_file_exists(buf)) return EINA_TRUE;
+
+   snprintf(buf2, sizeof(buf2), "config/%s/base.cfg", profile);
+   eina_str_join_len(buf, sizeof(buf), '/',
+                     _elm_data_dir, strlen(_elm_data_dir),
+                     buf2, strlen(buf2));
+   if (ecore_file_exists(buf)) return EINA_TRUE;
+   return EINA_FALSE;
+}
+
 EAPI void
 elm_config_profile_set(const char *profile)
 {
    EINA_SAFETY_ON_NULL_RETURN(profile);
    _elm_config_profile_set(profile);
+}
+
+EAPI void
+elm_config_profile_save(const char *profile)
+{
+   EINA_SAFETY_ON_NULL_RETURN(profile);
+   _elm_config_save(_elm_config, profile);
 }
 
 EAPI const char *
@@ -2882,6 +3278,18 @@ elm_config_scroll_thumbscroll_sensitivity_friction_get(void)
    return _elm_config->thumbscroll_sensitivity_friction;
 }
 
+EAPI Eina_Bool
+elm_config_context_menu_disabled_get(void)
+{
+	return _elm_config->context_menu_disabled;
+}
+
+EAPI void
+elm_config_context_menu_disabled_set(Eina_Bool disabled)
+{
+	_elm_config->context_menu_disabled = !!disabled;
+}
+
 EAPI void
 elm_config_scroll_thumbscroll_sensitivity_friction_set(double friction)
 {
@@ -3184,10 +3592,8 @@ elm_config_window_auto_focus_animate_set(Eina_Bool enable)
 EAPI void
 elm_config_all_flush(void)
 {
-   char buf[4096], buf2[4096];
-   int ok = 0, ret;
-   const char *err;
-   Eet_File *ef;
+   char buf[PATH_MAX];
+   int ok = 0;
    size_t len;
 
    len = _elm_config_user_dir_snprintf(buf, sizeof(buf), "themes/");
@@ -3214,52 +3620,13 @@ elm_config_all_flush(void)
         return;
      }
 
-   if (!_elm_config_profile_save())
-     return;
-
-   buf[len] = '/';
-   len++;
-
-   if (len + sizeof("flush.cfg") >= sizeof(buf) - len)
-     return;
-
-   memcpy(buf + len, "flush.cfg", sizeof("flush.cfg"));
-   len += sizeof("flush.cfg") - 1;
-
-   if (len + sizeof(".tmp") >= sizeof(buf))
-     return;
-
-   memcpy(buf2, buf, len);
-   memcpy(buf2 + len, ".tmp", sizeof(".tmp"));
-
-   ef = eet_open(buf2, EET_FILE_MODE_WRITE);
-   if (!ef)
-     return;
-
-   ok = eet_data_write(ef, _config_edd, "config", _elm_config, 1);
-   if (!ok)
-     goto err;
-
-   err = _elm_config_eet_close_error_get(ef, buf2);
-   if (err)
+   if (!_elm_config_profile_save(NULL))
      {
-        ERR("%s", err);
-        free((void *)err);
-        goto err;
+        ERR("Failed to save profile");
+        return;
      }
 
-   ret = ecore_file_mv(buf2, buf);
-   if (!ret)
-     {
-        ERR("Error saving Elementary's configuration file");
-        goto err;
-     }
-
-   ecore_file_unlink(buf2);
-   return;
-
-err:
-   ecore_file_unlink(buf2);
+   elm_config_save();
    return;
 }
 
@@ -3296,6 +3663,7 @@ _elm_config_init(void)
    if (!ELM_EVENT_CONFIG_ALL_CHANGED)
       ELM_EVENT_CONFIG_ALL_CHANGED = ecore_event_type_new();
    _desc_init();
+   _elm_config_profile_derived_init();
    _profile_fetch_from_conf();
    _config_load();
    _env_get();
@@ -3316,33 +3684,96 @@ _elm_config_sub_shutdown(void)
 #ifdef HAVE_ELEMENTARY_X
    if (ecore_x_display_get()) ecore_x_shutdown();
 #endif
-   ELM_SAFE_FREE(_eio_monitor, eio_monitor_del);
+#ifdef HAVE_ELEMENTARY_WL2
+   if (_elm_wl_display)
+     {
+        ecore_wl2_display_disconnect(_elm_wl_display);
+        ecore_wl2_shutdown();
+     }
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+   ecore_win32_shutdown();
+#endif
+   ELM_SAFE_FREE(_eio_config_monitor, eio_monitor_del);
+   ELM_SAFE_FREE(_eio_profile_monitor, eio_monitor_del);
    ELM_SAFE_FREE(_config_change_delay_timer, ecore_timer_del);
+   ELM_SAFE_FREE(_config_profile_change_delay_timer, ecore_timer_del);
+   ELM_SAFE_FREE(_monitor_file_created_handler, ecore_event_handler_del);
+   ELM_SAFE_FREE(_monitor_directory_created_handler, ecore_event_handler_del);
+}
+
+static Eina_Bool
+_config_profile_change_delay_cb(void *data EINA_UNUSED)
+{
+   char *pprof = NULL;
+
+   if (_elm_profile) pprof = strdup(_elm_profile);
+   _profile_fetch_from_conf();
+   if ((!pprof) || (!(!strcmp(pprof, _elm_profile))))
+     {
+        _config_flush_get();
+     }
+   free(pprof);
+   _config_profile_change_delay_timer = NULL;
+   return ECORE_CALLBACK_CANCEL;
 }
 
 static Eina_Bool
 _config_change_delay_cb(void *data EINA_UNUSED)
 {
-   char buf[PATH_MAX];
+   _elm_config_reload();
 
-   _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/flush.cfg");
-   if (ecore_file_exists(buf)) _config_flush_get();
    _config_change_delay_timer = NULL;
-
    return ECORE_CALLBACK_CANCEL;
 }
 
 static Eina_Bool
 _elm_config_file_monitor_cb(void *data EINA_UNUSED,
-                            int type EINA_UNUSED,
+                            int type,
                             void *event)
 {
    Eio_Monitor_Event *ev = event;
+   const char *file = ecore_file_file_get(ev->filename);
+   char buf[PATH_MAX];
 
-   if (ev->monitor != _eio_monitor) return ECORE_CALLBACK_PASS_ON;
-
-   ecore_timer_del(_config_change_delay_timer);
-   _config_change_delay_timer = ecore_timer_add(0.1, _config_change_delay_cb, NULL);
+   if (ev->monitor == _eio_config_monitor)
+     {
+        if (type == EIO_MONITOR_FILE_CREATED)
+          {
+             if (!strcmp(file, "base.cfg"))
+               {
+                  if (_config_change_delay_timer)
+                    ecore_timer_del(_config_change_delay_timer);
+                  _config_change_delay_timer = ecore_timer_add(0.1, _config_change_delay_cb, NULL);
+               }
+          }
+     }
+   if (ev->monitor == _eio_profile_monitor)
+     {
+        if (type == EIO_MONITOR_FILE_CREATED)
+          {
+             if ((!_config_profile_lock) && (!strcmp(file, "profile.cfg")))
+               {
+                  if (_config_profile_change_delay_timer)
+                    ecore_timer_del(_config_profile_change_delay_timer);
+                  _config_profile_change_delay_timer = ecore_timer_add(0.1, _config_profile_change_delay_cb, NULL);
+               }
+          }
+        else if (type == EIO_MONITOR_DIRECTORY_CREATED)
+          {
+             if (!_eio_config_monitor)
+               {
+                  _eio_config_monitor = eio_monitor_add(ev->filename);
+                  snprintf(buf, sizeof(buf), "%s/base.cfg", ev->filename);
+                  if (ecore_file_exists(buf))
+                    {
+                       if (_config_change_delay_timer)
+                         ecore_timer_del(_config_change_delay_timer);
+                       _config_change_delay_timer = ecore_timer_add(0.1, _config_change_delay_cb, NULL);
+                    }
+               }
+          }
+     }
 
    return ECORE_CALLBACK_PASS_ON;
 }
@@ -3350,7 +3781,7 @@ _elm_config_file_monitor_cb(void *data EINA_UNUSED,
 void
 _elm_config_sub_init(void)
 {
-#if defined(HAVE_ELEMENTARY_X) || defined(HAVE_ELEMENTARY_WAYLAND)
+#if defined(HAVE_ELEMENTARY_X) || defined(HAVE_ELEMENTARY_WL2) || defined(HAVE_ELEMENTARY_WIN32)
    const char *ev = getenv("ELM_DISPLAY");
 #endif
 
@@ -3385,7 +3816,7 @@ _elm_config_sub_init(void)
         ecore_x_init(NULL);
      }
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
+#ifdef HAVE_ELEMENTARY_WL2
    Eina_Bool init_wl = EINA_FALSE;
    Eina_Bool have_wl_display = !!getenv("WAYLAND_DISPLAY");
 
@@ -3413,17 +3844,29 @@ _elm_config_sub_init(void)
      }
    if (init_wl)
      {
-        ecore_wl_init(NULL);
+        if (!ecore_wl2_init())
+          {
+             ERR("Could not initialize Ecore_Wl2");
+             goto end;
+          }
+        _elm_wl_display = ecore_wl2_display_connect(NULL);
+        if (!_elm_wl_display)
+          {
+             ERR("Could not connect to Wayland Display");
+             goto end;
+          }
      }
 #endif
+#ifdef HAVE_ELEMENTARY_COCOA
+   ecore_cocoa_init();
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+   ecore_win32_init();
+#endif
    char buf[PATH_MAX];
-   size_t len;
    int ok = 0;
 
-   len = _elm_config_user_dir_snprintf(buf, sizeof(buf), "config/");
-   if (len + 10 >= sizeof(buf)) // the space to add "flush.cfg"
-     goto end;
-
+   _elm_config_user_dir_snprintf(buf, sizeof(buf), "config");
    ok = ecore_file_mkpath(buf);
    if (!ok)
      {
@@ -3431,12 +3874,11 @@ _elm_config_sub_init(void)
             buf);
         goto end;
      }
-
-   strcat(buf, "flush.cfg");
-   if (!ecore_file_exists(buf)) elm_config_all_flush();
-
-   _eio_monitor = eio_monitor_add(buf);
-   ecore_event_handler_add(EIO_MONITOR_FILE_MODIFIED, _elm_config_file_monitor_cb, NULL);
+   _eio_profile_monitor = eio_monitor_add(buf);
+   _monitor_file_created_handler = ecore_event_handler_add
+     (EIO_MONITOR_FILE_CREATED, _elm_config_file_monitor_cb, NULL);
+   _monitor_directory_created_handler = ecore_event_handler_add
+     (EIO_MONITOR_DIRECTORY_CREATED, _elm_config_file_monitor_cb, NULL);
 
 end:
    _config_sub_apply();
@@ -3650,6 +4092,7 @@ _elm_config_shutdown(void)
    ELM_SAFE_FREE(_elm_profile, free);
    _elm_font_overlays_del_free();
 
+   _elm_config_profile_derived_shutdown();
    _desc_shutdown();
 
    ELM_SAFE_FREE(_elm_key_bindings, eina_hash_free);

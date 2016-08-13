@@ -6,11 +6,22 @@
 #ifdef HAVE_ELEMENTARY_FB
 #include <Ecore_Fb.h>
 #endif
-#ifdef HAVE_ELEMENTARY_WAYLAND
-#include <Ecore_Wayland.h>
+#ifdef HAVE_ELEMENTARY_WL2
+#include <Ecore_Wl2.h>
 #endif
 #ifdef HAVE_ELEMENTARY_DRM
 #include <Ecore_Drm.h>
+#endif
+#ifdef HAVE_ELEMENTARY_COCOA
+/* Ecore_Cocoa is still in Beta. In Elementary, we know what we are
+ * doing, so let's silent the disclaimer... */
+# ifndef ECORE_COCOA_WIP_GNSIDNQI
+#  define ECORE_COCOA_WIP_GNSIDNQI
+#endif
+# include <Ecore_Cocoa.h>
+#endif
+#ifdef HAVE_ELEMENTARY_WIN32
+#include <Ecore_Win32.h>
 #endif
 
 #include <Eio.h>
@@ -123,7 +134,7 @@ struct _Elm_Theme
  * the users config doesn't need to be wiped - simply new values need
  * to be put in
  */
-#define ELM_CONFIG_FILE_GENERATION 0x0006
+#define ELM_CONFIG_FILE_GENERATION 0x0008
 #define ELM_CONFIG_VERSION_EPOCH_OFFSET 16
 #define ELM_CONFIG_VERSION         ((ELM_CONFIG_EPOCH << ELM_CONFIG_VERSION_EPOCH_OFFSET) | \
                                     ELM_CONFIG_FILE_GENERATION)
@@ -235,6 +246,8 @@ struct _Elm_Config
    unsigned char first_item_focus_on_first_focus_in;  /**< This sets the first item focus on first focus in feature*/
    Elm_Focus_Autoscroll_Mode focus_autoscroll_mode; /**< This shows the focus auto scroll mode. By default, @c ELM_FOCUS_AUTOSCROLL_MODE_SHOW is set. */
    Elm_Slider_Indicator_Visible_Mode  slider_indicator_visible_mode;  /**< this sets the slider indicator visible mode */
+   double        popup_horizontal_align;
+   double        popup_vertical_align;
    int           toolbar_shrink_mode;
    unsigned char fileselector_expand_enable;
    unsigned char fileselector_double_tap_navigation_enable;
@@ -243,6 +256,7 @@ struct _Elm_Config
    double        longpress_timeout;
    unsigned char effect_enable;
    unsigned char desktop_entry;
+   unsigned char context_menu_disabled;
    unsigned char password_show_last;
    double        password_show_last_timeout;
    unsigned char glayer_zoom_finger_enable;
@@ -419,7 +433,7 @@ void                 _elm_config_init(void);
 void                 _elm_config_sub_init(void);
 void                 _elm_config_shutdown(void);
 void                 _elm_config_sub_shutdown(void);
-Eina_Bool            _elm_config_save(void);
+Eina_Bool            _elm_config_save(Elm_Config *cfg, const char *profile);
 void                 _elm_config_reload(void);
 size_t               _elm_config_user_dir_snprintf(char *dst, size_t size,
                                                    const char *fmt, ...)
@@ -431,7 +445,7 @@ void                 _elm_recache(void);
 const char          *_elm_config_current_profile_get(void);
 const char          *_elm_config_profile_dir_get(const char *prof,
                                                  Eina_Bool is_user);
-Eina_List           *_elm_config_profiles_list(void);
+Eina_List           *_elm_config_profiles_list(Eina_Bool hide_profiles);
 void                 _elm_config_all_update(void);
 void                 _elm_config_profile_set(const char *profile);
 
@@ -460,6 +474,7 @@ Eina_Bool            _elm_config_access_get(void);
 void                 _elm_config_access_set(Eina_Bool is_access);
 
 Eina_Bool            _elm_config_key_binding_call(Evas_Object *obj,
+                                                  const char *name,
                                                   const Evas_Event_Key_Down *ev,
                                                   const Elm_Action *actions);
 
@@ -558,6 +573,12 @@ extern const char SIG_WIDGET_LANG_CHANGED[];
 extern const char SIG_WIDGET_ACCESS_CHANGED[];
 extern const char SIG_LAYOUT_FOCUSED[];
 extern const char SIG_LAYOUT_UNFOCUSED[];
+
+extern Eina_Bool _config_profile_lock;
+
+#ifdef HAVE_ELEMENTARY_WL2
+extern Ecore_Wl2_Display *_elm_wl_display;
+#endif
 
 #ifdef ENABLE_NLS
 /* Our gettext wrapper, used to disable translation of elm if the app

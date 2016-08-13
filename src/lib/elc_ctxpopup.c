@@ -20,6 +20,8 @@ EAPI const char ELM_CTXPOPUP_SMART_NAME[] = "elm_ctxpopup";
 
 #define ELM_PRIV_CTXPOPUP_SIGNALS(cmd) \
    cmd(SIG_DISMISSED, "dismissed", "") \
+   cmd(SIG_GEOMETRY_UPDATE, "geometry,update", "") \
+
 
 ELM_PRIV_CTXPOPUP_SIGNALS(ELM_PRIV_STATIC_VARIABLE_DECLARE);
 
@@ -149,7 +151,7 @@ _elm_ctxpopup_elm_widget_event(Eo *obj, Elm_Ctxpopup_Data *sd EINA_UNUSED, Evas_
    if (type != EVAS_CALLBACK_KEY_DOWN) return EINA_FALSE;
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return EINA_FALSE;
 
-   if (!_elm_config_key_binding_call(obj, ev, key_actions))
+   if (!_elm_config_key_binding_call(obj, MY_CLASS_NAME, ev, key_actions))
      return EINA_FALSE;
 
    ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
@@ -672,6 +674,8 @@ _elm_ctxpopup_elm_layout_sizing_eval(Eo *obj, Elm_Ctxpopup_Data *sd)
    evas_object_resize(wd->resize_obj, rect.w, rect.h);
 
    _show_signals_emit(obj, sd->dir);
+
+   eo_do(obj, eo_event_callback_call(ELM_CTXPOPUP_EVENT_GEOMETRY_UPDATE, &rect));
 }
 
 static void
@@ -987,8 +991,10 @@ _on_show(void *data EINA_UNUSED,
    _show_signals_emit(obj, sd->dir);
 
    elm_layout_sizing_eval(obj);
-
-   elm_object_focus_set(obj, EINA_TRUE);
+   /*
+    * XXX: see above comment, but for any swallowed list-type object
+    */
+   //elm_object_focus_set(obj, EINA_TRUE);
 }
 
 static void
