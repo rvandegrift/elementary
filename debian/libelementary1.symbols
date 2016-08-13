@@ -11,8 +11,6 @@ libelementary.so.1 libelementary1 #MINVER#
  ELM_FILESELECTOR_ENTRY_SMART_NAME@Base 1.16.1+eo+1
  ELM_GENGRID_PAN_SMART_NAME@Base 1.16.1+eo+1
  ELM_GENGRID_SMART_NAME@Base 1.16.1+eo+1
- _ELM_ACTIONSLIDER_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_ACTIONSLIDER_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_ACTIONSLIDER_EVENT_POS_CHANGED@Base 1.16.1+eo+1
  _ELM_APP_CLIENT_EVENT_APPLICATION_TERMINATED@Base 1.16.1+eo+1
  _ELM_APP_CLIENT_EVENT_VIEW_CREATED@Base 1.16.1+eo+1
@@ -36,37 +34,29 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_ATSPI_BRIDGE_EVENT_DISCONNECTED@Base 1.16.1+eo+1
  _ELM_BOX_EVENT_CHILD_ADDED@Base 1.16.1+eo+1
  _ELM_BOX_EVENT_CHILD_REMOVED@Base 1.16.1+eo+1
- _ELM_CALENDAR_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_CALENDAR_EVENT_CHANGED@Base 1.16.1+eo+1
  _ELM_CALENDAR_EVENT_DISPLAY_CHANGED@Base 1.16.1+eo+1
- _ELM_CALENDAR_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_CHECK_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_CHECK_EVENT_CHANGED@Base 1.16.1+eo+1
- _ELM_CHECK_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_CLOCK_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_CLOCK_EVENT_CHANGED@Base 1.16.1+eo+1
- _ELM_CLOCK_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_COLORSELECTOR_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_COLORSELECTOR_EVENT_CHANGED@Base 1.16.1+eo+1
  _ELM_COLORSELECTOR_EVENT_CHANGED_USER@Base 1.16.1+eo+1
  _ELM_COLORSELECTOR_EVENT_COLOR_ITEM_LONGPRESSED@Base 1.16.1+eo+1
  _ELM_COLORSELECTOR_EVENT_COLOR_ITEM_SELECTED@Base 1.16.1+eo+1
- _ELM_COLORSELECTOR_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
+ _ELM_COMBOBOX_EVENT_CLICKED@Base 1.17.1-1
+ _ELM_COMBOBOX_EVENT_DISMISSED@Base 1.17.1+eo+1
+ _ELM_COMBOBOX_EVENT_EXPANDED@Base 1.17.1+eo+1
+ _ELM_COMBOBOX_EVENT_FILTER_DONE@Base 1.17.1+eo+1
+ _ELM_COMBOBOX_EVENT_ITEM_PRESSED@Base 1.17.1+eo+1
+ _ELM_COMBOBOX_EVENT_ITEM_SELECTED@Base 1.17.1+eo+1
  _ELM_CONFORMANT_EVENT_CLIPBOARD_STATE_OFF@Base 1.16.1+eo+1
  _ELM_CONFORMANT_EVENT_CLIPBOARD_STATE_ON@Base 1.16.1+eo+1
  _ELM_CONFORMANT_EVENT_VIRTUALKEYPAD_STATE_OFF@Base 1.16.1+eo+1
  _ELM_CONFORMANT_EVENT_VIRTUALKEYPAD_STATE_ON@Base 1.16.1+eo+1
  _ELM_CTXPOPUP_EVENT_DISMISSED@Base 1.16.1+eo+1
- _ELM_DATETIME_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
+ _ELM_CTXPOPUP_EVENT_GEOMETRY_UPDATE@Base 1.17.1+eo+1
  _ELM_DATETIME_EVENT_CHANGED@Base 1.16.1+eo+1
- _ELM_DATETIME_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_DAYSELECTOR_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_DAYSELECTOR_EVENT_DAYSELECTOR_CHANGED@Base 1.16.1+eo+1
- _ELM_DAYSELECTOR_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_DISKSELECTOR_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_DISKSELECTOR_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_ABORTED@Base 1.16.1+eo+1
- _ELM_ENTRY_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_ACTIVATED@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_ANCHOR_CLICKED@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_ANCHOR_DOWN@Base 1.16.1+eo+1
@@ -79,7 +69,6 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_ENTRY_EVENT_CONTEXT_OPEN@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_CURSOR_CHANGED@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_CURSOR_CHANGED_MANUAL@Base 1.16.1+eo+1
- _ELM_ENTRY_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_MAXLENGTH_REACHED@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_PREEDIT_CHANGED@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_PRESS@Base 1.16.1+eo+1
@@ -88,28 +77,19 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_ENTRY_EVENT_TEXT_SET_DONE@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_UNDO_REQUEST@Base 1.16.1+eo+1
  _ELM_ENTRY_EVENT_VALIDATE@Base 1.16.1+eo+1
- _ELM_FILESELECTOR_BUTTON_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_BUTTON_EVENT_FILE_CHOSEN@Base 1.16.1+eo+1
- _ELM_FILESELECTOR_BUTTON_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_FILESELECTOR_ENTRY_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_ENTRY_EVENT_ACTIVATED@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_ENTRY_EVENT_CHANGED@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_ENTRY_EVENT_FILE_CHOSEN@Base 1.16.1+eo+1
- _ELM_FILESELECTOR_ENTRY_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_ENTRY_EVENT_PRESS@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_EVENT_ACTIVATED@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_EVENT_DIRECTORY_OPEN@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_EVENT_DONE@Base 1.16.1+eo+1
  _ELM_FILESELECTOR_EVENT_SELECTED_INVALID@Base 1.16.1+eo+1
- _ELM_FLIPSELECTOR_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_FLIPSELECTOR_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_FLIPSELECTOR_EVENT_OVERFLOWED@Base 1.16.1+eo+1
  _ELM_FLIPSELECTOR_EVENT_UNDERFLOWED@Base 1.16.1+eo+1
  _ELM_FLIP_EVENT_ANIMATE_BEGIN@Base 1.16.1+eo+1
  _ELM_FLIP_EVENT_ANIMATE_DONE@Base 1.16.1+eo+1
- _ELM_FRAME_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_FRAME_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_GENGRID_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_ACTIVATED@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_EDGE_BOTTOM@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_EDGE_LEFT@Base 1.16.1+eo+1
@@ -121,15 +101,11 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_GENGRID_EVENT_ITEM_REORDER_ANIM_START@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_ITEM_REORDER_ANIM_STOP@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_ITEM_UNFOCUSED@Base 1.16.1+eo+1
- _ELM_GENGRID_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_REALIZED@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_RELEASED@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_SCROLL_PAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_UNHIGHLIGHTED@Base 1.16.1+eo+1
  _ELM_GENGRID_EVENT_UNREALIZED@Base 1.16.1+eo+1
- _ELM_GENGRID_PAN_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_GENGRID_PAN_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_GENLIST_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_ACTIVATED@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_CONTRACTED@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_CONTRACT_REQUEST@Base 1.16.1+eo+1
@@ -147,7 +123,6 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_GENLIST_EVENT_INDEX_UPDATE@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_ITEM_FOCUSED@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_ITEM_UNFOCUSED@Base 1.16.1+eo+1
- _ELM_GENLIST_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_MOVED@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_MOVED_AFTER@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_MOVED_BEFORE@Base 1.16.1+eo+1
@@ -166,18 +141,12 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_GENLIST_EVENT_VBAR_DRAG@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_VBAR_PRESS@Base 1.16.1+eo+1
  _ELM_GENLIST_EVENT_VBAR_UNPRESS@Base 1.16.1+eo+1
- _ELM_GENLIST_PAN_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_GENLIST_PAN_EVENT_ITEM_FOCUSED@Base 1.16.1+eo+1
  _ELM_GENLIST_PAN_EVENT_ITEM_UNFOCUSED@Base 1.16.1+eo+1
- _ELM_GENLIST_PAN_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_GLVIEW_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_GLVIEW_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_HOVERSEL_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_HOVERSEL_EVENT_DISMISSED@Base 1.16.1+eo+1
  _ELM_HOVERSEL_EVENT_EXPANDED@Base 1.16.1+eo+1
  _ELM_HOVERSEL_EVENT_ITEM_FOCUSED@Base 1.16.1+eo+1
  _ELM_HOVERSEL_EVENT_ITEM_UNFOCUSED@Base 1.16.1+eo+1
- _ELM_HOVERSEL_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_HOVER_EVENT_DISMISSED@Base 1.16.1+eo+1
  _ELM_HOVER_EVENT_SMART_CHANGED@Base 1.16.1+eo+1
  _ELM_ICON_EVENT_THUMB_DONE@Base 1.16.1+eo+1
@@ -187,10 +156,8 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_IMAGE_EVENT_DOWNLOAD_PROGRESS@Base 1.16.1+eo+1
  _ELM_IMAGE_EVENT_DOWNLOAD_START@Base 1.16.1+eo+1
  _ELM_IMAGE_EVENT_DROP@Base 1.16.1+eo+1
- _ELM_INDEX_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_INDEX_EVENT_CHANGED@Base 1.16.1+eo+1
  _ELM_INDEX_EVENT_DELAY_CHANGED@Base 1.16.1+eo+1
- _ELM_INDEX_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_INDEX_EVENT_LEVEL_DOWN@Base 1.16.1+eo+1
  _ELM_INDEX_EVENT_LEVEL_UP@Base 1.16.1+eo+1
  _ELM_INTERFACE_ATSPI_ACCESSIBLE_EVENT_ACTIVE_DESCENDANT_CHANGED@Base 1.16.1+eo+1
@@ -215,13 +182,8 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_MINIMIZED@Base 1.16.1+eo+1
  _ELM_INTERFACE_ATSPI_WINDOW_EVENT_WINDOW_RESTORED@Base 1.16.1+eo+1
  _ELM_INTERFACE_SCROLLABLE_EVENT_CHANGED@Base 1.16.1+eo+1
- _ELM_LABEL_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_LABEL_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_LABEL_EVENT_SLIDE_END@Base 1.16.1+eo+1
- _ELM_LAYOUT_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_LAYOUT_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_LAYOUT_EVENT_THEME_CHANGED@Base 1.16.1+eo+1
- _ELM_LIST_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_LIST_EVENT_ACTIVATED@Base 1.16.1+eo+1
  _ELM_LIST_EVENT_EDGE_BOTTOM@Base 1.16.1+eo+1
  _ELM_LIST_EVENT_EDGE_LEFT@Base 1.16.1+eo+1
@@ -232,11 +194,8 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_LIST_EVENT_ITEM_REORDER_ANIM_START@Base 1.16.1+eo+1
  _ELM_LIST_EVENT_ITEM_REORDER_ANIM_STOP@Base 1.16.1+eo+1
  _ELM_LIST_EVENT_ITEM_UNFOCUSED@Base 1.16.1+eo+1
- _ELM_LIST_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_LIST_EVENT_SWIPE@Base 1.16.1+eo+1
  _ELM_LIST_EVENT_UNHIGHLIGHTED@Base 1.16.1+eo+1
- _ELM_MAP_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_MAP_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_MAP_EVENT_LOADED@Base 1.16.1+eo+1
  _ELM_MAP_EVENT_NAME_LOAD@Base 1.16.1+eo+1
  _ELM_MAP_EVENT_NAME_LOADED@Base 1.16.1+eo+1
@@ -251,8 +210,6 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_MAP_EVENT_TILE_LOADED@Base 1.16.1+eo+1
  _ELM_MAP_EVENT_TILE_LOADED_FAIL@Base 1.16.1+eo+1
  _ELM_MAP_EVENT_ZOOM_CHANGE@Base 1.16.1+eo+1
- _ELM_MAP_PAN_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_MAP_PAN_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_MAP_PAN_EVENT_LOADED@Base 1.16.1+eo+1
  _ELM_MAP_PAN_EVENT_NAME_LOAD@Base 1.16.1+eo+1
  _ELM_MAP_PAN_EVENT_NAME_LOADED@Base 1.16.1+eo+1
@@ -265,11 +222,9 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_MAP_PAN_EVENT_TILE_LOAD@Base 1.16.1+eo+1
  _ELM_MAP_PAN_EVENT_TILE_LOADED@Base 1.16.1+eo+1
  _ELM_MAP_PAN_EVENT_TILE_LOADED_FAIL@Base 1.16.1+eo+1
- _ELM_MENU_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_MENU_EVENT_DISMISSED@Base 1.16.1+eo+1
  _ELM_MENU_EVENT_ELM_ACTION_BLOCK_MENU@Base 1.16.1+eo+1
  _ELM_MENU_EVENT_ELM_ACTION_UNBLOCK_MENU@Base 1.16.1+eo+1
- _ELM_MENU_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_MULTIBUTTONENTRY_EVENT_CHANGED@Base 1.16.1+eo+1
  _ELM_MULTIBUTTONENTRY_EVENT_CONTRACTED@Base 1.16.1+eo+1
  _ELM_MULTIBUTTONENTRY_EVENT_EXPANDED@Base 1.16.1+eo+1
@@ -279,12 +234,11 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_MULTIBUTTONENTRY_EVENT_ITEM_DELETED@Base 1.16.1+eo+1
  _ELM_MULTIBUTTONENTRY_EVENT_ITEM_LONGPRESSED@Base 1.16.1+eo+1
  _ELM_MULTIBUTTONENTRY_EVENT_ITEM_SELECTED@Base 1.16.1+eo+1
- _ELM_NAVIFRAME_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
- _ELM_NAVIFRAME_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_NAVIFRAME_EVENT_TITLE_CLICKED@Base 1.16.1+eo+1
  _ELM_NAVIFRAME_EVENT_TITLE_TRANSITION_FINISHED@Base 1.16.1+eo+1
  _ELM_NAVIFRAME_EVENT_TRANSITION_FINISHED@Base 1.16.1+eo+1
  _ELM_NOTIFY_EVENT_BLOCK_CLICKED@Base 1.16.1+eo+1
+ _ELM_NOTIFY_EVENT_DISMISSED@Base 1.17.1+eo+1
  _ELM_NOTIFY_EVENT_TIMEOUT@Base 1.16.1+eo+1
  _ELM_PANES_EVENT_PRESS@Base 1.16.1+eo+1
  _ELM_PANES_EVENT_UNPRESS@Base 1.16.1+eo+1
@@ -309,7 +263,6 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_PLAYER_EVENT_EJECT_CLICKED@Base 1.16.1+eo+1
  _ELM_PLAYER_EVENT_FORWARD_CLICKED@Base 1.16.1+eo+1
  _ELM_PLAYER_EVENT_INFO_CLICKED@Base 1.16.1+eo+1
- _ELM_PLAYER_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_PLAYER_EVENT_MUTE_CLICKED@Base 1.16.1+eo+1
  _ELM_PLAYER_EVENT_NEXT_CLICKED@Base 1.16.1+eo+1
  _ELM_PLAYER_EVENT_PAUSE_CLICKED@Base 1.16.1+eo+1
@@ -320,11 +273,10 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_PLAYER_EVENT_VOLUME_CLICKED@Base 1.16.1+eo+1
  _ELM_PLUG_EVENT_IMAGE_DELETED@Base 1.16.1+eo+1
  _ELM_PLUG_EVENT_IMAGE_RESIZED@Base 1.16.1+eo+1
- _ELM_POPUP_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_POPUP_EVENT_BLOCK_CLICKED@Base 1.16.1+eo+1
+ _ELM_POPUP_EVENT_DISMISSED@Base 1.17.1+eo+1
  _ELM_POPUP_EVENT_ITEM_FOCUSED@Base 1.16.1+eo+1
  _ELM_POPUP_EVENT_ITEM_UNFOCUSED@Base 1.16.1+eo+1
- _ELM_POPUP_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_POPUP_EVENT_TIMEOUT@Base 1.16.1+eo+1
  _ELM_PREFS_EVENT_ACTION@Base 1.16.1+eo+1
  _ELM_PREFS_EVENT_ITEM_CHANGED@Base 1.16.1+eo+1
@@ -332,12 +284,8 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_PREFS_EVENT_PAGE_LOADED@Base 1.16.1+eo+1
  _ELM_PREFS_EVENT_PAGE_RESET@Base 1.16.1+eo+1
  _ELM_PREFS_EVENT_PAGE_SAVED@Base 1.16.1+eo+1
- _ELM_PROGRESSBAR_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_PROGRESSBAR_EVENT_CHANGED@Base 1.16.1+eo+1
- _ELM_PROGRESSBAR_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_RADIO_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_RADIO_EVENT_CHANGED@Base 1.16.1+eo+1
- _ELM_RADIO_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_SCROLLER_EVENT_EDGE_BOTTOM@Base 1.16.1+eo+1
  _ELM_SCROLLER_EVENT_EDGE_LEFT@Base 1.16.1+eo+1
  _ELM_SCROLLER_EVENT_EDGE_RIGHT@Base 1.16.1+eo+1
@@ -353,23 +301,15 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_SCROLLER_EVENT_VBAR_DRAG@Base 1.16.1+eo+1
  _ELM_SCROLLER_EVENT_VBAR_PRESS@Base 1.16.1+eo+1
  _ELM_SCROLLER_EVENT_VBAR_UNPRESS@Base 1.16.1+eo+1
- _ELM_SEGMENT_CONTROL_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_SEGMENT_CONTROL_EVENT_CHANGED@Base 1.16.1+eo+1
- _ELM_SEGMENT_CONTROL_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
- _ELM_SLIDER_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_SLIDER_EVENT_CHANGED@Base 1.16.1+eo+1
  _ELM_SLIDER_EVENT_DELAY_CHANGED@Base 1.16.1+eo+1
- _ELM_SLIDER_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_SLIDER_EVENT_SLIDER_DRAG_START@Base 1.16.1+eo+1
  _ELM_SLIDER_EVENT_SLIDER_DRAG_STOP@Base 1.16.1+eo+1
- _ELM_SLIDESHOW_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_SLIDESHOW_EVENT_CHANGED@Base 1.16.1+eo+1
- _ELM_SLIDESHOW_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_SLIDESHOW_EVENT_TRANSITION_END@Base 1.16.1+eo+1
- _ELM_SPINNER_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_SPINNER_EVENT_CHANGED@Base 1.16.1+eo+1
  _ELM_SPINNER_EVENT_DELAY_CHANGED@Base 1.16.1+eo+1
- _ELM_SPINNER_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_SPINNER_EVENT_SPINNER_DRAG_START@Base 1.16.1+eo+1
  _ELM_SPINNER_EVENT_SPINNER_DRAG_STOP@Base 1.16.1+eo+1
  _ELM_THUMB_EVENT_GENERATE_ERROR@Base 1.16.1+eo+1
@@ -377,17 +317,13 @@ libelementary.so.1 libelementary1 #MINVER#
  _ELM_THUMB_EVENT_GENERATE_STOP@Base 1.16.1+eo+1
  _ELM_THUMB_EVENT_LOAD_ERROR@Base 1.16.1+eo+1
  _ELM_THUMB_EVENT_PRESS@Base 1.16.1+eo+1
- _ELM_TOOLBAR_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_TOOLBAR_EVENT_ITEM_FOCUSED@Base 1.16.1+eo+1
  _ELM_TOOLBAR_EVENT_ITEM_UNFOCUSED@Base 1.16.1+eo+1
- _ELM_TOOLBAR_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_VIEW_LIST_EVENT_MODEL_SELECTED@Base 1.16.1+eo+1
  _ELM_WEB_EVENT_URI_CHANGED@Base 1.16.1+eo+1
  _ELM_WEB_EVENT_URL_CHANGED@Base 1.16.1+eo+1
  _ELM_WEB_EVENT_WINDOWS_CLOSE_REQUEST@Base 1.16.1+eo+1
- _ELM_WIDGET_EVENT_ACCESS_CHANGED@Base 1.16.1+eo+1
  _ELM_WIDGET_EVENT_FOCUSED@Base 1.16.1+eo+1
- _ELM_WIDGET_EVENT_LANGUAGE_CHANGED@Base 1.16.1+eo+1
  _ELM_WIDGET_EVENT_MOVED@Base 1.16.1+eo+1
  _ELM_WIDGET_EVENT_UNFOCUSED@Base 1.16.1+eo+1
  _ELM_WIN_EVENT_ANIMATOR_TICK@Base 1.16.1+eo+1
@@ -539,7 +475,6 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_atspi_attributes_list_free@Base 1.16.1+eo+1
  elm_atspi_bridge_class_get@Base 1.16.1+eo+1
  elm_atspi_bridge_connected_get@Base 1.16.1+eo+1
- elm_atspi_bridge_root_get@Base 1.16.1+eo+1
  elm_atspi_relation_clone@Base 1.16.1+eo+1
  elm_atspi_relation_free@Base 1.16.1+eo+1
  elm_atspi_relation_set_clone@Base 1.16.1+eo+1
@@ -667,6 +602,11 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_colorselector_palette_name_get@Base 1.16.1+eo+1
  elm_colorselector_palette_name_set@Base 1.16.1+eo+1
  elm_colorselector_palette_selected_item_get@Base 1.16.1+eo+1
+ elm_combobox_add@Base 1.17.1+eo+1
+ elm_combobox_class_get@Base 1.17.1+eo+1
+ elm_combobox_expanded_get@Base 1.17.1+eo+1
+ elm_combobox_hover_begin@Base 1.17.1+eo+1
+ elm_combobox_hover_end@Base 1.17.1+eo+1
  elm_config_accel_preference_get@Base 1.16.1+eo+1
  elm_config_accel_preference_override_get@Base 1.16.1+eo+1
  elm_config_accel_preference_override_set@Base 1.16.1+eo+1
@@ -698,6 +638,8 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_config_color_overlay_list_get@Base 1.16.1+eo+1
  elm_config_color_overlay_set@Base 1.16.1+eo+1
  elm_config_color_overlay_unset@Base 1.16.1+eo+1
+ elm_config_context_menu_disabled_get@Base 1.17.1+eo+1
+ elm_config_context_menu_disabled_set@Base 1.17.1+eo+1
  elm_config_cursor_engine_only_get@Base 1.16.1+eo+1
  elm_config_cursor_engine_only_set@Base 1.16.1+eo+1
  elm_config_disable_external_menu_get@Base 1.16.1+eo+1
@@ -744,11 +686,16 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_config_password_show_last_timeout_set@Base 1.16.1+eo+1
  elm_config_preferred_engine_get@Base 1.16.1+eo+1
  elm_config_preferred_engine_set@Base 1.16.1+eo+1
+ elm_config_profile_derived_add@Base 1.17.1+eo+1
+ elm_config_profile_derived_del@Base 1.17.1+eo+1
  elm_config_profile_dir_free@Base 1.16.1+eo+1
  elm_config_profile_dir_get@Base 1.16.1+eo+1
+ elm_config_profile_exists@Base 1.17.1+eo+1
  elm_config_profile_get@Base 1.16.1+eo+1
  elm_config_profile_list_free@Base 1.16.1+eo+1
+ elm_config_profile_list_full_get@Base 1.17.1+eo+1
  elm_config_profile_list_get@Base 1.16.1+eo+1
+ elm_config_profile_save@Base 1.17.1+eo+1
  elm_config_profile_set@Base 1.16.1+eo+1
  elm_config_reload@Base 1.16.1+eo+1
  elm_config_save@Base 1.16.1+eo+1
@@ -1502,9 +1449,12 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_interface_atspi_accessible_role_get@Base 1.16.1+eo+1
  elm_interface_atspi_accessible_role_name_get@Base 1.16.1+eo+1
  elm_interface_atspi_accessible_role_set@Base 1.16.1+eo+1
+ elm_interface_atspi_accessible_root_get@Base 1.17.1+eo+1
  elm_interface_atspi_accessible_state_set_get@Base 1.16.1+eo+1
  elm_interface_atspi_accessible_translation_domain_get@Base 1.16.1+eo+1
  elm_interface_atspi_accessible_translation_domain_set@Base 1.16.1+eo+1
+ elm_interface_atspi_accessible_type_get@Base 1.17.1+eo+1
+ elm_interface_atspi_accessible_type_set@Base 1.17.1+eo+1
  elm_interface_atspi_action_actions_get@Base 1.16.1+eo+1
  elm_interface_atspi_action_description_get@Base 1.16.1+eo+1
  elm_interface_atspi_action_description_set@Base 1.16.1+eo+1
@@ -1958,6 +1908,7 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_notify_allow_events_get@Base 1.16.1+eo+1
  elm_notify_allow_events_set@Base 1.16.1+eo+1
  elm_notify_class_get@Base 1.16.1+eo+1
+ elm_notify_dismiss@Base 1.17.1+eo+1
  elm_notify_orient_get@Base 1.16.1+eo+1
  elm_notify_orient_set@Base 1.16.1+eo+1
  elm_notify_parent_get@Base 1.16.1+eo+1
@@ -1972,7 +1923,6 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_actionslider_magnet_pos_set@Base 1.16.1+eo+1
  elm_obj_actionslider_selected_label_get@Base 1.16.1+eo+1
  elm_obj_atspi_bridge_connected_get@Base 1.16.1+eo+1
- elm_obj_atspi_bridge_root_get@Base 1.16.1+eo+1
  elm_obj_bg_color_get@Base 1.16.1+eo+1
  elm_obj_bg_color_set@Base 1.16.1+eo+1
  elm_obj_bg_load_size_set@Base 1.16.1+eo+1
@@ -2056,6 +2006,9 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_colorselector_palette_name_get@Base 1.16.1+eo+1
  elm_obj_colorselector_palette_name_set@Base 1.16.1+eo+1
  elm_obj_colorselector_palette_selected_item_get@Base 1.16.1+eo+1
+ elm_obj_combobox_expanded_get@Base 1.17.1+eo+1
+ elm_obj_combobox_hover_begin@Base 1.17.1+eo+1
+ elm_obj_combobox_hover_end@Base 1.17.1+eo+1
  elm_obj_container_content_get@Base 1.16.1+eo+1
  elm_obj_container_content_set@Base 1.16.1+eo+1
  elm_obj_container_content_swallow_list_get@Base 1.16.1+eo+1
@@ -2685,6 +2638,7 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_notify_align_set@Base 1.16.1+eo+1
  elm_obj_notify_allow_events_get@Base 1.16.1+eo+1
  elm_obj_notify_allow_events_set@Base 1.16.1+eo+1
+ elm_obj_notify_dismiss@Base 1.17.1+eo+1
  elm_obj_notify_timeout_get@Base 1.16.1+eo+1
  elm_obj_notify_timeout_set@Base 1.16.1+eo+1
  elm_obj_pan_content_size_get@Base 1.16.1+eo+1
@@ -2749,6 +2703,7 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_popup_allow_events_set@Base 1.16.1+eo+1
  elm_obj_popup_content_text_wrap_type_get@Base 1.16.1+eo+1
  elm_obj_popup_content_text_wrap_type_set@Base 1.16.1+eo+1
+ elm_obj_popup_dismiss@Base 1.17.1+eo+1
  elm_obj_popup_item_append@Base 1.16.1+eo+1
  elm_obj_popup_orient_get@Base 1.16.1+eo+1
  elm_obj_popup_orient_set@Base 1.16.1+eo+1
@@ -2884,6 +2839,12 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_spinner_value_set@Base 1.16.1+eo+1
  elm_obj_spinner_wrap_get@Base 1.16.1+eo+1
  elm_obj_spinner_wrap_set@Base 1.16.1+eo+1
+ elm_obj_sys_notify_interface_close@Base 1.17.1+eo+1
+ elm_obj_sys_notify_interface_send@Base 1.17.1+eo+1
+ elm_obj_sys_notify_interface_simple_send@Base 1.17.1+eo+1
+ elm_obj_sys_notify_servers_get@Base 1.17.1+eo+1
+ elm_obj_sys_notify_servers_set@Base 1.17.1+eo+1
+ elm_obj_sys_notify_singleton_get@Base 1.17.1+eo+1
  elm_obj_systray_att_icon_name_get@Base 1.16.1+eo+1
  elm_obj_systray_att_icon_name_set@Base 1.16.1+eo+1
  elm_obj_systray_category_get@Base 1.16.1+eo+1
@@ -3190,6 +3151,7 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_win_borderless_get@Base 1.16.1+eo+1
  elm_obj_win_borderless_set@Base 1.16.1+eo+1
  elm_obj_win_center@Base 1.16.1+eo+1
+ elm_obj_win_cocoa_window_get@Base 1.17.1+eo+1
  elm_obj_win_conformant_get@Base 1.16.1+eo+1
  elm_obj_win_conformant_set@Base 1.16.1+eo+1
  elm_obj_win_demand_attention_get@Base 1.16.1+eo+1
@@ -3276,6 +3238,7 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_obj_win_type_set@Base 1.16.1+eo+1
  elm_obj_win_urgent_get@Base 1.16.1+eo+1
  elm_obj_win_urgent_set@Base 1.16.1+eo+1
+ elm_obj_win_win32_window_get@Base 1.17.1+eo+1
  elm_obj_win_window_id_get@Base 1.16.1+eo+1
  elm_obj_win_withdrawn_get@Base 1.16.1+eo+1
  elm_obj_win_withdrawn_set@Base 1.16.1+eo+1
@@ -3529,6 +3492,7 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_popup_class_get@Base 1.16.1+eo+1
  elm_popup_content_text_wrap_type_get@Base 1.16.1+eo+1
  elm_popup_content_text_wrap_type_set@Base 1.16.1+eo+1
+ elm_popup_dismiss@Base 1.17.1+eo+1
  elm_popup_item_append@Base 1.16.1+eo+1
  elm_popup_item_class_get@Base 1.16.1+eo+1
  elm_popup_orient_get@Base 1.16.1+eo+1
@@ -3837,8 +3801,17 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_store_sorted_set@Base 1.16.1+eo+1
  elm_store_target_genlist_set@Base 1.16.1+eo+1
  elm_store_unfetch_func_set@Base 1.16.1+eo+1
- elm_sys_notify_close@Base 1.16.1+eo+1
- elm_sys_notify_send@Base 1.16.1+eo+1
+ elm_sys_notify_class_get@Base 1.17.1+eo+1
+  elm_sys_notify_close@Base 1.16.1+eo+1
+ elm_sys_notify_dbus_class_get@Base 1.17.1+eo+1
+ elm_sys_notify_interface_close@Base 1.17.1+eo+1
+ elm_sys_notify_interface_interface_get@Base 1.17.1+eo+1
+ elm_sys_notify_interface_send@Base 1.17.1+eo+1
+ elm_sys_notify_interface_simple_send@Base 1.17.1+eo+1
+  elm_sys_notify_send@Base 1.16.1+eo+1
+ elm_sys_notify_servers_get@Base 1.17.1+eo+1
+ elm_sys_notify_servers_set@Base 1.17.1+eo+1
+ elm_sys_notify_singleton_get@Base 1.17.1+eo+1
  elm_systray_att_icon_name_get@Base 1.16.1+eo+1
  elm_systray_att_icon_name_set@Base 1.16.1+eo+1
  elm_systray_category_get@Base 1.16.1+eo+1
@@ -4339,6 +4312,7 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_win_borderless_set@Base 1.16.1+eo+1
  elm_win_center@Base 1.16.1+eo+1
  elm_win_class_get@Base 1.16.1+eo+1
+ elm_win_cocoa_window_get@Base 1.17.1+eo+1
  elm_win_conformant_get@Base 1.16.1+eo+1
  elm_win_conformant_set@Base 1.16.1+eo+1
  elm_win_demand_attention_get@Base 1.16.1+eo+1
@@ -4440,6 +4414,7 @@ libelementary.so.1 libelementary1 #MINVER#
  elm_win_urgent_set@Base 1.16.1+eo+1
  elm_win_util_dialog_add@Base 1.16.1+eo+1
  elm_win_util_standard_add@Base 1.16.1+eo+1
+ elm_win_win32_window_get@Base 1.17.1+eo+1
  elm_win_window_id_get@Base 1.16.1+eo+1
  elm_win_withdrawn_get@Base 1.16.1+eo+1
  elm_win_withdrawn_set@Base 1.16.1+eo+1
