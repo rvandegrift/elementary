@@ -1,3 +1,12 @@
+elementary (1.17.1-1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream version.
+  * Record symbols changed in 1.17
+  * Bump symbol versions for new release of eolian generator
+
+ -- Ross Vandegrift <ross@kallisti.us>  Sat, 13 Aug 2016 16:59:28 -0400
+
 elementary (1.16.1-1) UNRELEASED; urgency=medium
 
   * Non-maintainer upload.
