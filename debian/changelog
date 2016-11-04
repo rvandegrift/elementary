@@ -1,11 +1,19 @@
-elementary (1.17.1-1) UNRELEASED; urgency=medium
+elementary (1.17.1-1) experimental; urgency=medium
 
-  * Non-maintainer upload.
+  [ Ross Vandegrift ]
   * New upstream version.
   * Record symbols changed in 1.17
   * Bump symbol versions for new release of eolian generator
 
- -- Ross Vandegrift <ross@kallisti.us>  Sat, 13 Aug 2016 16:59:28 -0400
+  [ Nicolas Braud-Santoni ]
+  * debian/rules
+    - Build-time hardening
+    - Environment fixup (fixes a FTBFS under sbuild)
+  * debian/control
+    - Add Uploaders
+    - Use TLS-enabled, canonical links
+
+ -- Nicolas Braud-Santoni <nicolas@braud-santoni.eu>  Fri, 04 Nov 2016 17:39:39 +0100
 
 elementary (1.16.1-1) UNRELEASED; urgency=medium
 
