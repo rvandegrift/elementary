@@ -1,7 +1,13 @@
 #!/usr/bin/make -f
 
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+include /usr/share/dpkg/buildflags.mk
+
 CFLAGS  += -fvisibility=hidden
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
+
+export XDG_RUNTIME_DIR=/tmp
+export HOME=/tmp
 
 %:
 	dh $@ --with autoreconf --parallel
